@@ -1,0 +1,89 @@
+name: Secure Build, Test, and Scan Pipeline
+
+on:
+  push:
+    # Trigger the pipeline on a push to the main branch
+    branches: [ "main" ]
+  pull_request:
+    # Trigger the pipeline on every Pull Request
+    branches: [ "main" ]
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  id-token: write # REQUIRED for OIDC
+  contents: read
+
+jobs:
+  # Job 1: Build and Test
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Unit & Integration Tests
+        run: npm test
+
+  # Job 2: Security Scans
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+      - name: Run Checkov Scan (for Terraform)
+        uses: bridgecrewio/checkov-action@v1
+        with:
+          directory: environments/dev
+          soft_fail: true
+
+  # Job 3: Deploy to AWS (Continuous Delivery)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    environment: dev
+
+    # ⚠️ FIX A: Only run this job when pushing to the main branch, not on PRs
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # Use a version matching your local setup
+          terraform_version: 1.12.2
+
+      # 1. Configure AWS Credentials (OIDC)
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_DEPLOY_ROLE_ARN }}
+          aws-region: us-west-2
+
+      # 2. Terraform Init
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
+        working-directory: environments/dev
+
+      # 3. Terraform Apply
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
+        working-directory: environments/dev

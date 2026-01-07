@@ -1,0 +1,46 @@
+variable "create_oidc_provider" {
+  description = "Controls whether the OIDC provider should be created"
+  type        = bool
+  default     = false
+}
+
+variable "oidc_provider_arn" {
+  description = "ARN of the OIDC provider"
+  type        = string
+}
+
+variable "deploy_role_name" {
+  description = "Name of the IAM role GitHub deployment will assume"
+  type        = string
+}
+
+variable "create_deploy_role" {
+  description = "Controls whether an IAM role should be created"
+  type        = bool
+  default     = false
+}
+
+variable "repo_owner" {
+  description = "Owner of GitHub repository"
+  type        = string
+}
+
+variable "repo_name" {
+  description = "Name of GitHub repository"
+  type        = string
+}
+
+variable "state_bucket_name" {
+  description = "Name of S3 bucket to store Terraform state files"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "Region to deploy infrastructure into"
+  type        = string
+}
+
+variable "aws_account_id" {
+  description = "The account ID of the current account"
+  type        = string
+}

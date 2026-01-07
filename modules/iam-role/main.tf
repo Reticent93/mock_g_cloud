@@ -1,0 +1,76 @@
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
+  client_id_list = ["sts.amazonaws.com", ]
+  url = "https://token.actions.githubusercontent.com"
+}
+
+data "aws_iam_policy_document" "github_assume_role" {
+  statement {
+    effect = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_provider_arn]
+    }
+    condition {
+      test     = "StringEquals"
+      values = ["sts.amazonaws.com"]
+      variable = "token.actions.githubusercontent.com:aud"
+    }
+    condition {
+      test     = "StringLike"
+      values = ["repo:${var.repo_owner}/${var.repo_name}"]
+      variable = "token.actions.githubusercontent.com:sub"
+    }
+  }
+}
+
+
+resource "aws_iam_role" "github_deploy_role" {
+  count = var.create_deploy_role ? 1 : 0
+  name               = var.deploy_role_name
+  assume_role_policy = data.aws_iam_policy_document.github_assume_role.json
+  max_session_duration = 3600 // 1 hour which is the default
+}
+
+resource "aws_iam_role_policy_attachment" "github_deploy_state_access" {
+  count = var.create_deploy_role ? 1 : 0
+  role = aws_iam_role.github_deploy_role[0].name
+  policy_arn = aws_iam_policy.tf_state_access_policy.arn
+
+}
+
+resource "aws_iam_policy" "tf_state_access_policy" {
+  name = "Github-TF-State_Access-Policy-${var.deploy_role_name}"
+  description = "Minimal permissions for Github Actions to manage Terraform state file"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "S3StateAccess"
+        Effect = "Allow"
+        Action = [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.state_bucket_name}",
+          "arn:aws:s3:::${var.state_bucket_name}/*"
+        ]
+      },
+      {
+        Sid = "DynamoDBLocking"
+        Effect = "Allow"
+        Action = [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+        ]
+        Resource = [ "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table "]
+      }
+    ]
+  })
+}
+
