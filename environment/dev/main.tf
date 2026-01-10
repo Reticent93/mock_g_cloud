@@ -10,6 +10,9 @@ data "terraform_remote_state" "global" {
 
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+}
 
 
 module "dev_deploy_role" {
