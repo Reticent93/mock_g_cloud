@@ -3,14 +3,8 @@ variable "project_name" {
   type = "string"
 }
 
-variable "aws_region" {
-  description = "AWS region"
-  type = string
-}
-
-variable "private_subnet_cidrs" {
-  description = "List of private subnet CIDR blocks"
-  type = list(string)
+variable "name_suffix" {
+  description = "Name suffix for the project"
 }
 
 variable "vpc_cidr" {

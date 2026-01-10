@@ -96,9 +96,9 @@ resource "aws_security_group" "db_sg" {
 }
 
 resource "aws_subnet" "primary_subnet" {
-  for_each = { for config in local.subnet_config : config.name_suffix => config }
+  for_each = tomap({ for subnet in local.subnet_config : subnet.name_suffix => subnet })
   vpc_id = aws_vpc.first.id
-  cidr_block = cidrsubnet(aws_vpc.first.cidr_block, 4 , each.value.netnum_offset )
+  cidr_block = cidrsubnet(aws_vpc.first.cidr_block, 4, each.value.netnum_offset )
   availability_zone = each.value.az_name
 
   tags = {
