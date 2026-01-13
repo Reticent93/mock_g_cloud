@@ -22,4 +22,9 @@ variable "flow_log_retention" {
   description = "Days to keep logs"
 }
 
+variable "flow_log_role_arn" {
+  description = "IAM role for flow logs"
+  type        = string
+}
+
 

@@ -49,3 +49,8 @@ variable "project_name" {
   description = "Name of the project"
   type        = string
 }
+
+variable "aws_cloudwatch_log_group" {
+  description = "CloudWatch log group that will receive log objects"
+  type        = string
+}

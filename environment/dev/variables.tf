@@ -35,3 +35,23 @@ variable "project_name" {
   type        = string
 }
 
+variable "aws_cloudwatch_log_group" {
+  description = "CloudWatch log group that will receive log objects"
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "CIDR for VPC"
+  type        = string
+}
+
+variable "flow_log_retention" {
+  description = "Number of days to keep cloudwatch flow logs"
+  type        = string
+  default     = "7"
+}
+
+variable "name_suffix" {
+  description = "Suffix for the resources"
+  type        = string
+}
