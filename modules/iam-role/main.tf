@@ -74,3 +74,50 @@ resource "aws_iam_policy" "tf_state_access_policy" {
   })
 }
 
+resource "aws_iam_role" "vpc_flow_log_role" {
+  name               = "${var.project_name}-flow-logs-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+      }
+    ]
+  })
+  max_session_duration = 3600 // 1 hour which is the default
+
+}
+
+resource "aws_iam_role_policy_attachment" "flow_logs_iam_role_attachment" {
+  count = var.create_deploy_role ? 1 : 0
+  role = aws_iam_role.vpc_flow_log_role.name
+  policy_arn = aws_iam_policy.tf_state_access_policy.arn
+}
+
+resource "aws_iam_policy" "flow_log_policy" {
+  name = "${var.project_name}-flow-log-to-cloudwatch"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "FlowLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
+

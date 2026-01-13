@@ -30,3 +30,8 @@ variable "deploy_role_name" {
   default = "GitHub_Actions_Deploy_Role_DEV"
 }
 
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+}
+

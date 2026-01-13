@@ -17,5 +17,9 @@ variable "aws_availability_zones" {
   type = list(string)
 }
 
+variable "flow_log_retention" {
+  type        = number
+  description = "Days to keep logs"
+}
 
 

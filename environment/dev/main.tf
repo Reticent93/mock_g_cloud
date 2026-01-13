@@ -25,4 +25,5 @@ module "dev_deploy_role" {
   aws_account_id = data.aws_caller_identity.current.account_id
   deploy_role_name = var.deploy_role_name
   create_deploy_role = true
+  project_name = var.project_name
 }

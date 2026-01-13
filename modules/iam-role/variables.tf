@@ -44,3 +44,8 @@ variable "aws_account_id" {
   description = "The account ID of the current account"
   type        = string
 }
+
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+}

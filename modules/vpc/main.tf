@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+  }
+}
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -11,12 +19,29 @@ resource "aws_vpc" "first" {
   }
 }
 
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.first.id
+  ingress {
+    protocol  = -1
+    self      = true
+    from_port = 0
+    to_port   = 0
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "alb_sg" {
   name = "${var.project_name}-alb-sg"
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
 
   ingress {
+    # checkov:skip=CKV_AWS_260: This ALB is intentional; must be public to receive internet traffic
     description = "HTTP from internet"
     from_port   = 80
     to_port     = 80
@@ -47,6 +72,7 @@ resource "aws_security_group" "alb_sg" {
 
 resource "aws_security_group" "apps_sg" {
   name = "${var.project_name}-apps-sg"
+  description = "Security group for apps"
   vpc_id = aws_vpc.first.id
 
   ingress {
@@ -59,10 +85,18 @@ resource "aws_security_group" "apps_sg" {
 
   egress {
     description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow to DB"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = [aws_security_group.db_sg.id]
   }
 
   tags = {
@@ -168,4 +202,15 @@ resource "aws_route_table_association" "private" {
   }
   subnet_id = each.value.id
   route_table_id = aws_route_table.private.id
+}
+
+resource "aws_flow_log" "main" {
+  log_destination = aws_cloudwatch_log_group.vpc_flow_log.arn
+  traffic_type         = "ALL"
+  vpc_id               = aws_vpc.first.id
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  name = "${var.project_name}-flow-logs"
+  retention_in_days = var.flow_log_retention
 }
