@@ -27,7 +27,7 @@ variable "create_deploy_role" {
 variable "deploy_role_name" {
   description = "Name of the IAM role GitHub deployment will assume"
   type        = string
-  default = "GitHub_Actions_Deploy_Role_DEV"
+  default     = "GitHub_Actions_Deploy_Role_DEV"
 }
 
 variable "project_name" {

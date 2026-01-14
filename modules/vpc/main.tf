@@ -2,6 +2,9 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 resource "aws_vpc" "first" {
   cidr_block = var.vpc_cidr
 
@@ -20,31 +23,6 @@ resource "aws_security_group" "alb_sg" {
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
 
-  ingress {
-    # checkov:skip=CKV_AWS_260: This ALB is intentional; must be public to receive internet traffic
-    description = "HTTP from internet"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTPS from Internet"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description = "Outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
       Name = "${var.project_name}-alb-sg"
   }
@@ -55,31 +33,7 @@ resource "aws_security_group" "apps_sg" {
   description = "Security group for apps"
   vpc_id = aws_vpc.first.id
 
-  ingress {
-    description = "ALB traffic"
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-
-  egress {
-    description = "Allow all outbound"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description = "Allow to DB"
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    security_groups = [aws_security_group.db_sg.id]
-  }
-
-  tags = {
+    tags = {
     Name = "${var.project_name}-app-sg"
   }
 }
@@ -88,25 +42,82 @@ resource "aws_security_group" "db_sg" {
   description = "Allows ALB SG traffic only"
   vpc_id = aws_vpc.first.id
 
-  ingress {
-    description = "Database access from app server"
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    security_groups = [aws_security_group.apps_sg.id]
-  }
-
-  egress {
-    description = "Allow outbound for patches/monitoring only"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [aws_vpc.first.cidr_block]
-  }
-
   tags = {
     Name = "${var.project_name}-db-sg"
   }
+}
+
+# Allow HTTPS from world ONLY to the LB
+resource "aws_security_group_rule" "alb_https_ingress" {
+  description = "Allows HTTPS traffic to LB"
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
+# Allow LB to talk to Apps
+resource "aws_security_group_rule" "alb_to_apps_egress" {
+  description = "Allows LB to send traffic to Apps"
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.alb_sg.id
+  source_security_group_id = aws_security_group.apps_sg.id
+}
+
+# Inbound traffic ONLY from LB
+resource "aws_security_group_rule" "apps_from_alb_ingress" {
+  description = "Allow traffic ONLY from ALB"
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.apps_sg.id
+  source_security_group_id = aws_security_group.alb_sg.id
+}
+
+# Inbound traffic from internet
+resource "aws_security_group_rule" "apps_https_ingress" {
+  description = "Allows HTTPS inbound traffic from internet"
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = aws_security_group.apps_sg.id
+}
+
+# Outbound traffic to internet
+resource "aws_security_group_rule" "apps_all_egress" {
+  description = "Allow outbound traffic"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.db_sg.id
+}
+
+# Allows App SG to talk to DB SG
+resource "aws_security_group_rule" "apps_to_db_egress" {
+  type              = "egress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  security_group_id = aws_security_group.apps_sg.id
+}
+
+# Allows DB SG to receive traffic from App SG
+resource "aws_security_group_rule" "db_from_apps_ingress" {
+  type = "ingress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol    = "tcp"
+  security_group_id = aws_security_group.db_sg.id
+  source_security_group_id = aws_security_group.apps_sg.id
 }
 
 resource "aws_subnet" "primary_subnet" {
@@ -198,6 +209,35 @@ resource "aws_cloudwatch_log_group" "vpc_flow_log" {
 }
 
 resource "aws_kms_key" "flow_log_key" {
+  description = "KMS keys for Flow Logs"
   deletion_window_in_days = var.flow_log_retention
   enable_key_rotation     = true
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        Sid : "Enable IAM User Permissions",
+        "Effect" : "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+        Condition = {
+          ArnLike = {
+            "kms:EncryptionContext:aws:logs:arn" : "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${var.project_name}-flow-logs"
+          }
+        }
+      }
+    ]
+  })
+
 }
+
+

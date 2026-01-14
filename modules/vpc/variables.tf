@@ -1,6 +1,6 @@
 variable "project_name" {
   description = "Name of the project"
-  type = "string"
+  type = string
 }
 
 variable "name_suffix" {
