@@ -27,4 +27,9 @@ variable "flow_log_role_arn" {
   type        = string
 }
 
+variable "key_deletion_window" {
+  description = "Automatically delete object with days"
+  type        = number
+}
+
 

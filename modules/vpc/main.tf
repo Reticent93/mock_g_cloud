@@ -14,11 +14,14 @@ resource "aws_vpc" "first" {
   }
 }
 
+
+#---------------SECURITY GROUP----------------#
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.first.id
 }
 
 resource "aws_security_group" "alb_sg" {
+  # checkov:skip-CKV2_AWS_5: "Attached to ALB in EC2 module"
   name = "${var.project_name}-alb-sg"
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
@@ -29,6 +32,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "apps_sg" {
+  # checkov:skip-CKV2_AWS_5: "Attached to EC2 in EC2 module"
   name = "${var.project_name}-apps-sg"
   description = "Security group for apps"
   vpc_id = aws_vpc.first.id
@@ -39,6 +43,7 @@ resource "aws_security_group" "apps_sg" {
 }
 
 resource "aws_security_group" "db_sg" {
+  # checkov:skip=CKV2_AWS_5: "Attached to RDS in the database module"
   description = "Allows ALB SG traffic only"
   vpc_id = aws_vpc.first.id
 
@@ -107,7 +112,9 @@ resource "aws_security_group_rule" "apps_to_db_egress" {
   from_port         = 5432
   to_port           = 5432
   protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
   security_group_id = aws_security_group.apps_sg.id
+  source_security_group_id = aws_security_group.db_sg.id
 }
 
 # Allows DB SG to receive traffic from App SG
@@ -120,6 +127,8 @@ resource "aws_security_group_rule" "db_from_apps_ingress" {
   source_security_group_id = aws_security_group.apps_sg.id
 }
 
+
+#---------------SUBNET-----------------------#
 resource "aws_subnet" "primary_subnet" {
   for_each = tomap({ for subnet in local.subnet_config : subnet.name_suffix => subnet })
   vpc_id = aws_vpc.first.id
@@ -153,6 +162,8 @@ resource "aws_eip" "nat" {
   }
 }
 
+
+#---------------ROUTE TABLE-----------------------#
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.first.id
   route {
@@ -202,6 +213,8 @@ resource "aws_flow_log" "main" {
   vpc_id               = aws_vpc.first.id
 }
 
+
+#---------------KMS-----------------------#
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
   name = "${var.project_name}-flow-logs"
   retention_in_days = var.flow_log_retention
@@ -210,7 +223,7 @@ resource "aws_cloudwatch_log_group" "vpc_flow_log" {
 
 resource "aws_kms_key" "flow_log_key" {
   description = "KMS keys for Flow Logs"
-  deletion_window_in_days = var.flow_log_retention
+  deletion_window_in_days = var.key_deletion_window
   enable_key_rotation     = true
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -221,9 +234,18 @@ resource "aws_kms_key" "flow_log_key" {
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         }
+        Action = "kms:*",
+        Resource = "*"
+      },
+      {
+        Sid = "Allow CloudWatch logs"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${data.aws_region.current.name}.amazonaws.com"
+        }
         Action = [
-        "kms:Encrypt",
-        "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:Decrypt",
           "kms:ReEncrypt*",
           "kms:GenerateDataKey*",
           "kms:DescribeKey"
