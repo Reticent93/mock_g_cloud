@@ -21,7 +21,7 @@ resource "aws_default_security_group" "default" {
 }
 
 resource "aws_security_group" "alb_sg" {
-  #checkov:skip-CKV2_AWS_5:Attached to ALB in EC2 module
+  # checkov:skip-CKV2_AWS_5:Attached to ALB in EC2 module
   name = "${var.project_name}-alb-sg"
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
@@ -32,7 +32,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "apps_sg" {
-  #checkov:skip-CKV2_AWS_5:Attached to EC2 in EC2 module
+  # checkov:skip-CKV2_AWS_5:Attached to EC2 in EC2 module
   name = "${var.project_name}-apps-sg"
   description = "Security group for apps"
   vpc_id = aws_vpc.first.id
@@ -43,7 +43,7 @@ resource "aws_security_group" "apps_sg" {
 }
 
 resource "aws_security_group" "db_sg" {
-  #checkov:skip=CKV2_AWS_5:Attached to RDS in the database module
+  # checkov:skip=CKV2_AWS_5:Attached to RDS in the database module
   description = "Allows ALB SG traffic only"
   vpc_id = aws_vpc.first.id
 
