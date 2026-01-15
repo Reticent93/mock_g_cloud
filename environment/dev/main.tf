@@ -35,4 +35,6 @@ module "dev_vpc" {
   vpc_cidr               = var.vpc_cidr
   aws_availability_zones = data.aws_availability_zones
   name_suffix            = var.name_suffix
+  key_deletion_window    = 30
 }
+
