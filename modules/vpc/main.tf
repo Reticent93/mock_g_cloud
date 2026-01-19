@@ -119,6 +119,7 @@ resource "aws_security_group_rule" "apps_all_egress" {
 
 # Allows App SG to talk to DB SG
 resource "aws_security_group_rule" "apps_to_db_egress" {
+  description = "Allows db traffic to apps"
   type              = "egress"
   from_port         = 5432
   to_port           = 5432
@@ -130,6 +131,7 @@ resource "aws_security_group_rule" "apps_to_db_egress" {
 
 # Allows DB SG to receive traffic from App SG
 resource "aws_security_group_rule" "db_from_apps_ingress" {
+  description = "Allows traffic from app to db"
   type = "ingress"
   from_port         = 5432
   to_port           = 5432

@@ -56,16 +56,26 @@ resource "aws_autoscaling_group" "app_asg" {
     id      = aws_launch_template.app_lt.id
     version = "$Latest"
   }
+
+  tag {
+    key = "${var.project_name}-app-sg"
+    propagate_at_launch = true
+    value = "development"
+  }
 }
 
 resource "aws_alb" "main" {
+  # checkov:skip=CKV_AWS_91: "Access logging is not required for this; temporary project"
   name = "${var.project_name}-alb"
   load_balancer_type = "application"
   security_groups = [var.alb_sg_id]
   subnets = var.public_subnet_ids
+  enable_deletion_protection = false
+  drop_invalid_header_fields = true
 }
 
 resource "aws_alb_listener" "http" {
+  # checkov:skip=CKV_AWS_2: "Port 80 is used for this project; redirect would require a certificate"
   load_balancer_arn = aws_alb.main.id
   port = 80
   protocol = "HTTP"
@@ -74,4 +84,14 @@ resource "aws_alb_listener" "http" {
     type = "forward"
     target_group_arn = aws_alb_target_group.app_tg.arn
   }
+
+  # Correct way
+  # default_action {
+  #   type = "redirect"
+  #   redirect {
+  #     port = "443"
+  #     protocol = "HTTPS"
+  #     status_code = "HTTP_301"
+  #   }
+  # }
 }
