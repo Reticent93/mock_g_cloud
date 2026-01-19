@@ -38,3 +38,12 @@ module "dev_vpc" {
   key_deletion_window    = 30
 }
 
+module "dev_apps" {
+  source = "../../modules/app"
+  project_name = var.project_name
+  alb_sg_id = module.dev_vpc.alb_sg_id
+  apps_sg_id = module.dev_vpc.app_sg_id
+  private_subnet_ids = module.dev_vpc.private_subnet_ids
+  public_subnet_ids = module.dev_vpc.public_subnet_ids
+  vpc_id = var.vpc_cidr
+}

@@ -63,6 +63,17 @@ resource "aws_security_group_rule" "alb_https_ingress" {
   security_group_id = aws_security_group.alb_sg.id
 }
 
+# Allow HTTP from internet
+resource "aws_security_group_rule" "alb_http_ingress" {
+  description = "Allows HTTP traffic from internet"
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.alb_sg.id
+}
+
 # Allow LB to talk to Apps
 resource "aws_security_group_rule" "alb_to_apps_egress" {
   description = "Allows LB to send traffic to Apps"
