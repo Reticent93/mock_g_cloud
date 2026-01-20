@@ -21,7 +21,7 @@ resource "aws_default_security_group" "default" {
 }
 
 resource "aws_security_group" "alb_sg" {
-  # checkov:skip-CKV2_AWS_5:Attached to ALB in App module
+  # checkov:skip=CKV2_AWS_5:Attached to ALB in App module
   name = "${var.project_name}-alb-sg"
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
@@ -32,7 +32,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "apps_sg" {
-  # checkov:skip-CKV2_AWS_5:Attached to EC2 in App module
+  # checkov:skip=CKV2_AWS_5:Attached to EC2 in App module
   name = "${var.project_name}-apps-sg"
   description = "Security group for apps"
   vpc_id = aws_vpc.first.id
@@ -65,6 +65,7 @@ resource "aws_security_group_rule" "alb_https_ingress" {
 
 # Allow HTTP from internet
 resource "aws_security_group_rule" "alb_http_ingress" {
+  # checkov:skip=CKV_AWS_260: Using port 80 for public access in this project
   description = "Allows HTTP traffic from internet"
   type              = "ingress"
   from_port         = 80

@@ -67,6 +67,10 @@ resource "aws_autoscaling_group" "app_asg" {
 
 resource "aws_alb" "main" {
   # checkov:skip=CKV_AWS_91:Access logging is not required for this; temporary project
+  # checkov:skip=CKV_AWS_150: Deletion protection is disabled; wanting to use terraform destroy dail
+  # checkov:skip=CKV2_AWS_28: WAF is too expensive for this project
+  # checkov:skip=CKV2_AWS_5: Attached to ALB via the listener and target group
+  # checkov:skip=CKV2_AWS_20: Port 80 is used for this project; redirect would require a certificate
   name = "${var.project_name}-alb"
   load_balancer_type = "application"
   security_groups = [var.alb_sg_id]
