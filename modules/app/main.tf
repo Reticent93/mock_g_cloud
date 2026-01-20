@@ -80,6 +80,7 @@ resource "aws_alb" "main" {
 
 resource "aws_alb_listener" "http" {
   # checkov:skip=CKV_AWS_2:Port 80 is used for this project; redirect would require a certificate
+  # checkov:skip=CKV_AWS_103: TLS 1.2+ not applicable for HTTP port 80
   load_balancer_arn = aws_alb.main.id
   port = 80
   protocol = "HTTP"
