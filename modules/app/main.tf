@@ -8,6 +8,7 @@ data "aws_ami" "amazon_linux" {
 }
 
 resource "aws_alb_target_group" "app_tg" {
+  # checkov:skip=CKV_AWS_378:Target group is using HTTP for this project. No SSL certificate is available
   name = "${var.project_name}-tg"
   port = 80
   protocol = "HTTP"
@@ -65,17 +66,16 @@ resource "aws_autoscaling_group" "app_asg" {
 }
 
 resource "aws_alb" "main" {
-  # checkov:skip=CKV_AWS_91: "Access logging is not required for this; temporary project"
+  # checkov:skip=CKV_AWS_91:Access logging is not required for this; temporary project
   name = "${var.project_name}-alb"
   load_balancer_type = "application"
   security_groups = [var.alb_sg_id]
   subnets = var.public_subnet_ids
-  enable_deletion_protection = false
   drop_invalid_header_fields = true
 }
 
 resource "aws_alb_listener" "http" {
-  # checkov:skip=CKV_AWS_2: "Port 80 is used for this project; redirect would require a certificate"
+  # checkov:skip=CKV_AWS_2:Port 80 is used for this project; redirect would require a certificate
   load_balancer_arn = aws_alb.main.id
   port = 80
   protocol = "HTTP"
