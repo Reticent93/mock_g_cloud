@@ -32,3 +32,15 @@ variable "instance_type" {
   type = string
   default = "t4g.nano"
 }
+
+variable "vpc_cidr" {
+  description = "CIDR block of VPC"
+  type = string
+}
+
+variable "db_sg_id" {
+  description = "ID of DB SG"
+  type = string
+}
+
+

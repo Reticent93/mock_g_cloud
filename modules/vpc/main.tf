@@ -31,26 +31,7 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-resource "aws_security_group" "apps_sg" {
-  # checkov:skip=CKV2_AWS_5:Attached to EC2 in App module
-  name = "${var.project_name}-apps-sg"
-  description = "Security group for apps"
-  vpc_id = aws_vpc.first.id
 
-    tags = {
-    Name = "${var.project_name}-app-sg"
-  }
-}
-
-resource "aws_security_group" "db_sg" {
-  # checkov:skip=CKV2_AWS_5:Attached to RDS in the database module
-  description = "Allows ALB SG traffic only"
-  vpc_id = aws_vpc.first.id
-
-  tags = {
-    Name = "${var.project_name}-db-sg"
-  }
-}
 
 # Allow HTTPS from world ONLY to the LB
 resource "aws_security_group_rule" "alb_https_ingress" {
@@ -83,64 +64,8 @@ resource "aws_security_group_rule" "alb_to_apps_egress" {
   to_port           = 80
   protocol          = "tcp"
   security_group_id = aws_security_group.alb_sg.id
-  source_security_group_id = aws_security_group.apps_sg.id
+  source_security_group_id = var.apps_sg.id
 }
-
-# Inbound traffic ONLY from LB
-resource "aws_security_group_rule" "apps_from_alb_ingress" {
-  description = "Allow traffic ONLY from ALB"
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = aws_security_group.apps_sg.id
-  source_security_group_id = aws_security_group.alb_sg.id
-}
-
-# Inbound traffic from internet
-resource "aws_security_group_rule" "apps_https_ingress" {
-  description = "Allows HTTPS inbound traffic from internet"
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = aws_security_group.apps_sg.id
-}
-
-# Outbound traffic to internet
-resource "aws_security_group_rule" "apps_all_egress" {
-  description = "Allow outbound traffic"
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = -1
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.db_sg.id
-}
-
-# Allows App SG to talk to DB SG
-resource "aws_security_group_rule" "apps_to_db_egress" {
-  description = "Allows db traffic to apps"
-  type              = "egress"
-  from_port         = 5432
-  to_port           = 5432
-  protocol          = "tcp"
-  cidr_blocks       = [var.vpc_cidr]
-  security_group_id = aws_security_group.apps_sg.id
-  source_security_group_id = aws_security_group.db_sg.id
-}
-
-# Allows DB SG to receive traffic from App SG
-resource "aws_security_group_rule" "db_from_apps_ingress" {
-  description = "Allows traffic from app to db"
-  type = "ingress"
-  from_port         = 5432
-  to_port           = 5432
-  protocol    = "tcp"
-  security_group_id = aws_security_group.db_sg.id
-  source_security_group_id = aws_security_group.apps_sg.id
-}
-
 
 #---------------SUBNET-----------------------#
 resource "aws_subnet" "primary_subnet" {

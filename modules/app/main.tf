@@ -7,6 +7,50 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+resource "aws_security_group" "apps_sg" {
+  # checkov:skip=CKV2_AWS_5:Attached to EC2 in App module
+  name = "${var.project_name}-apps-sg"
+  description = "Security group for apps"
+  vpc_id = var.vpc_id.first.id
+
+  tags = {
+    Name = "${var.project_name}-app-sg"
+  }
+}
+
+# Allows App SG to talk to DB SG
+resource "aws_security_group_rule" "apps_to_db_egress" {
+  description = "Allows db traffic to apps"
+  type              = "egress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  cidr_blocks       = [var.vpc_cidr]
+  security_group_id = aws_security_group.apps_sg.id
+  source_security_group_id = var.db_sg_id
+}
+
+# Inbound traffic ONLY from LB
+resource "aws_security_group_rule" "apps_from_alb_ingress" {
+  description = "Allow traffic ONLY from ALB"
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.apps_sg.id
+  source_security_group_id = var.alb_sg_id
+}
+
+resource "aws_security_group_rule" "apps_all_egress" {
+  description = "Allow App to reach internet"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.apps_sg.id
+}
+
 resource "aws_alb_target_group" "app_tg" {
   # checkov:skip=CKV_AWS_378:Target group is using HTTP for this project. No SSL certificate is available
   name = "${var.project_name}-tg"
@@ -28,7 +72,7 @@ resource "aws_launch_template" "app_lt" {
 
   network_interfaces {
     associate_public_ip_address = false
-    security_groups = [var.apps_sg_id]
+    security_groups = [aws_security_group.apps_sg.id]
   }
 
   metadata_options {
