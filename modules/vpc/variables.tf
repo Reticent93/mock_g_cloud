@@ -32,7 +32,7 @@ variable "key_deletion_window" {
   type        = number
 }
 
-variable "apps_sg" {
+variable "app_sg" {
   description = "ID of security group for apps"
   type = string
 }

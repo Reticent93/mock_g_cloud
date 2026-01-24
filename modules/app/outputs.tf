@@ -12,3 +12,7 @@ output "asg_name" {
   description = "Name of ASG"
   value = aws_autoscaling_group.app_asg.name
 }
+
+output "app_sg_id" {
+  value = aws_security_group.apps_sg
+}

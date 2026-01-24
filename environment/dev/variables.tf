@@ -13,6 +13,11 @@ variable "repo_name" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "Id of the VPC"
+  type        = string
+}
+
 variable "state_bucket_name" {
   description = "Name of S3 bucket to store Terraform state files"
   type        = string
@@ -53,5 +58,30 @@ variable "flow_log_retention" {
 
 variable "name_suffix" {
   description = "Suffix for the resources"
+  type        = string
+}
+
+variable "db_resource_id" {
+  description = "resource id for db instance"
+  type        = string
+}
+
+variable "db_sg_id" {
+  description = "ID of DB SG"
+  type = string
+}
+
+variable "app_sg_id" {
+  description = "ID of App SG"
+  type = string
+}
+
+variable "alb_sg_id" {
+  description = "ID of ALB SG"
+  type = string
+}
+
+variable "aws_iam_instance_profile_name" {
+  description = "IAM instance profile for App"
   type        = string
 }

@@ -1,9 +1,18 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+  }
+}
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
   url = "https://token.actions.githubusercontent.com"
 }
 
+#-------------------GITHUB ASSUME ROLE--------------------------#
 data "aws_iam_policy_document" "github_assume_role" {
   statement {
     effect = "Allow"
@@ -26,6 +35,7 @@ data "aws_iam_policy_document" "github_assume_role" {
 }
 
 
+#-------------------GITHUB DEPLOY ROLE--------------------------#
 resource "aws_iam_role" "github_deploy_role" {
   count = var.create_deploy_role ? 1 : 0
   name               = var.deploy_role_name
@@ -119,5 +129,44 @@ resource "aws_iam_policy" "flow_log_policy" {
   })
 }
 
+
+#-------------------EC2 ROLE--------------------------#
+resource "aws_iam_role" "app_role" {
+  name = "${var.project_name}app-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }]
+  })
+}
+
+resource "aws_iam_policy" "rds_connect_policy" {
+  description = "Allows EC2 connect to my Postgres RDS using IAM"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "rds-db:connect"
+        Resource = "arn:aws:rds-db:${var.aws_region}:${var.aws_account_id}:dbuser:${var.db_resource_id}/${var.db_user}"
+      }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_policy_attach" {
+  role = aws_iam_role.app_role.name
+  policy_arn = aws_iam_policy.rds_connect_policy.arn
+}
+
+resource "aws_iam_instance_profile" "app_profile" {
+  name = "${var.project_name}-app-profile"
+  role = aws_iam_role.app_role.name
+}
 
 

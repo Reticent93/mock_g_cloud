@@ -3,9 +3,9 @@ output "vpc_id" {
   value = aws_vpc.first.id
 }
 
-output "vpc_cider" {
+output "vpc_cidr" {
   description = "CIDR block of VPC"
-  value = aws_vpc.first.id
+  value = aws_vpc.first.cidr_block
 }
 
 output "public_subnet_ids" {
@@ -18,24 +18,9 @@ output "private_subnet_ids" {
   value = [for s in aws_subnet.primary_subnet : s.id if s.tags.Type == "private"]
 }
 
-output "db_subnet_ids" {
-  description = "List of db subnet IDs"
-  value = [for s in aws_subnet.primary_subnet : s.id if s.tags.Type == "db"]
-}
-
 output "alb_sg_id" {
   description = "SG ID for LB"
   value = aws_security_group.alb_sg.id
-}
-
-output "app_sg_id" {
-  description = "SG ID for APP"
-  value = aws_security_group.apps_sg.id
-}
-
-output "db_sg_id" {
-  description = "SG ID for DB"
-  value = aws_security_group.db_sg.id
 }
 
 output "flow_log_group_arn" {

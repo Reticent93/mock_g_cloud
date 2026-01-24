@@ -7,6 +7,8 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_vpc" "first" {
   cidr_block = var.vpc_cidr
+  enable_dns_support = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = "${var.project_name}-vpc"
@@ -31,41 +33,24 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-
-
-# Allow HTTPS from world ONLY to the LB
-resource "aws_security_group_rule" "alb_https_ingress" {
-  description = "Allows HTTPS traffic to LB"
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+  description = "Allow HTTP from outside only from LB"
+  from_port = 80
+  to_port = 80
+  ip_protocol       = "tcp"
+  cidr_ipv4 = "0.0.0.0/0"
   security_group_id = aws_security_group.alb_sg.id
 }
 
-# Allow HTTP from internet
-resource "aws_security_group_rule" "alb_http_ingress" {
-  # checkov:skip=CKV_AWS_260: Using port 80 for public access in this project
-  description = "Allows HTTP traffic from internet"
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+resource "aws_vpc_security_group_ingress_rule" "alb_https" {
+  description = "Allow HTTPS from outside only from LB"
+  from_port = 443
+  to_port = 443
+  ip_protocol       = "tcp"
+  cidr_ipv4 = "0.0.0.0/0"
   security_group_id = aws_security_group.alb_sg.id
 }
 
-# Allow LB to talk to Apps
-resource "aws_security_group_rule" "alb_to_apps_egress" {
-  description = "Allows LB to send traffic to Apps"
-  type              = "egress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = aws_security_group.alb_sg.id
-  source_security_group_id = var.apps_sg.id
-}
 
 #---------------SUBNET-----------------------#
 resource "aws_subnet" "primary_subnet" {
@@ -198,7 +183,10 @@ resource "aws_kms_key" "flow_log_key" {
       }
     ]
   })
-
+  tags = {
+    Description = "Encryption for Flow Logs"
+    Name = "${var.project_name}-flow-log-key"
+  }
 }
 
 

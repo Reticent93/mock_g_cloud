@@ -54,3 +54,14 @@ variable "aws_cloudwatch_log_group" {
   description = "CloudWatch log group that will receive log objects"
   type        = string
 }
+
+variable "db_resource_id" {
+  description = "resource id for db instance"
+  type        = string
+}
+
+variable "db_user" {
+  description = "Username for the master DB user"
+  type        = string
+  default     = "dbadmin"
+}
