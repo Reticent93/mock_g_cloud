@@ -74,7 +74,7 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_nat_gateway" "main" {
-  subnet_id = aws_subnet.primary_subnet["public_1"].id
+  subnet_id = aws_subnet.primary_subnet["public-1"].id
   allocation_id = aws_eip.nat.id
 }
 
@@ -104,7 +104,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.first.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.main.id
+    nat_gateway_id = aws_nat_gateway.main.id
   }
 
   tags = {
@@ -165,7 +165,7 @@ resource "aws_kms_key" "flow_log_key" {
         Sid = "Allow CloudWatch logs"
         Effect = "Allow"
         Principal = {
-          Service = "logs.${data.aws_region.current.name}.amazonaws.com"
+          Service = "logs.${data.aws_region.current.id}.amazonaws.com"
         }
         Action = [
           "kms:Encrypt",

@@ -14,5 +14,9 @@ output "asg_name" {
 }
 
 output "app_sg_id" {
-  value = aws_security_group.apps_sg
+  value = aws_security_group.apps_sg.id
+}
+
+output "ami_id" {
+  value = aws_launch_template.app_lt.image_id
 }

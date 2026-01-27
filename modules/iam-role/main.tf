@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.81.0"
-    }
-  }
-}
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
@@ -123,7 +115,7 @@ resource "aws_iam_policy" "flow_log_policy" {
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams",
         ]
-        Resource = var.aws_cloudwatch_log_group.vpc_flow_log.arn
+        Resource = var.aws_cloudwatch_log_group
       }
     ]
   })
@@ -167,6 +159,20 @@ resource "aws_iam_role_policy_attachment" "rds_policy_attach" {
 resource "aws_iam_instance_profile" "app_profile" {
   name = "${var.project_name}-app-profile"
   role = aws_iam_role.app_role.name
+}
+
+resource "aws_iam_role_policy" "secrets_read" {
+  name = "${var.project_name}-secrets-read"
+  role = aws_iam_role.app_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "secretsmanager:GetSecretValue"
+        Resource = var.db_password_secret_arn
+      }]
+  })
 }
 
 

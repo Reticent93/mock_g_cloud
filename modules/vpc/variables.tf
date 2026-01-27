@@ -35,6 +35,7 @@ variable "key_deletion_window" {
 variable "app_sg" {
   description = "ID of security group for apps"
   type = string
+  default = null
 }
 
 

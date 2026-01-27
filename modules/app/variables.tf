@@ -3,6 +3,11 @@ variable "project_name" {
   type = string
 }
 
+variable "aws_region" {
+  description = "AWS region to launch servers"
+  type = string
+}
+
 variable "vpc_id" {
   description = "ID of VPC"
   type = string
@@ -28,11 +33,15 @@ variable "alb_sg_id" {
   type = string
 }
 
-
 variable "instance_type" {
   description = "EC2 instance type"
   type = string
   default = "t3.micro"
+}
+
+variable "ami_id" {
+  description = "ID of AMI to use for the instance"
+  type = string
 }
 
 variable "db_sg_id" {
@@ -47,6 +56,11 @@ variable "aws_iam_instance_profile_name" {
 
 variable "db_endpoint" {
   description = "endpoint of the RDS"
+  type = string
+}
+
+variable "db_secret_arn" {
+  description = "ARN of the DB password secret in RDS"
   type = string
 }
 

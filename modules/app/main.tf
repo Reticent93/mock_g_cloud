@@ -62,7 +62,7 @@ resource "aws_alb_target_group" "app_tg" {
 
 resource "aws_launch_template" "app_lt" {
   name_prefix = "${var.project_name}-lt"
-  image_id = data.ami_id != "" ? data.ami_id : data.aws_ami.amazon_linux.id
+  image_id = var.ami_id != "" ? var.ami_id : data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
 
   iam_instance_profile {
@@ -89,16 +89,23 @@ resource "aws_launch_template" "app_lt" {
   #             EOF
   # )
 
-  user_data = base64encode(
-              #!/bin/bash
-              dnf update -y
-              dnf install -y httpd postgres15 nmap-ncat
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y httpd postgres15 nmap-ncat
     # Start server
     systemctl start httpd
     systemctl enable httpd
 
+    # Get secret
+    SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${var.db_secret_arn} --region ${var.aws_region} --query SecretString --output text)
+
     # Connection Test Variables
-    DB_ENDPOINT="${db_endpoint}"
+    DB_USER=$(echo $SECRET_JSON | jq -r .username)
+    DB_PASS=$(echo $SECRET_JSON | jq -r .password)
+
+    #Write to config file
+    echo "DATABASE_URL=postgres://$DB_USER:$DB_PASS@${var.db_endpoint}/myfirstpostgres" >> /etc/environment
 
     # Attempt to connect to port
     if nc -zv $DB_ENDPOINT 5432 -w 5 > /tmp/db.test.log 2>&1; then
@@ -109,10 +116,10 @@ resource "aws_launch_template" "app_lt" {
 
     # Output the result to the website
     echo "<h1>Infrastructure Status<h1> " > /var/www/html/index.html
-    echo "<p>Project: ${project_name}<p> " > /var/www/html/index.html
+    echo "<p>Project: ${var.project_name}<p> " > /var/www/html/index.html
     echo "<p>Database Connectivity: <strong>$RESULT<strong><p>" >> /var/www/html/index.html
 
-
+    EOF
   )
 }
 
