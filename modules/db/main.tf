@@ -45,9 +45,15 @@ resource "aws_db_parameter_group" "db_pg" {
     value = "1000"
   }
 
+  parameter {
+    name = "rds.force_ssl"
+    value = "1"
+  }
+
 }
 resource "aws_db_instance" "first_postgres" {
   # checkov:skip=CKV_AWS_293:Deletion protection set to false for daily destroy
+  # checkov:skip=CKV_AWS_354: Using AWS managed key is ok for dev
   identifier = "${var.project_name}-db"
   instance_class = var.instance_class
   engine = "postgres"

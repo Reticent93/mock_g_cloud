@@ -34,6 +34,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+  # checkov:skip=CKV_AWS_260: This is a public ALB, must be open to the internet
   description = "Allow HTTP from outside only from LB"
   from_port = 80
   to_port = 80

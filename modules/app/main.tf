@@ -31,6 +31,7 @@ resource "aws_vpc_security_group_egress_rule" "apps_to_db" {
 
 # Inbound traffic ONLY from LB
 resource "aws_vpc_security_group_ingress_rule" "apps_from_alb_ingress" {
+  # checkov:skip=CKV_AWS_260: Port 80 is restricted to ALB SG, not public
   description = "Allow traffic ONLY from ALB"
   from_port         = 80
   to_port           = 80
