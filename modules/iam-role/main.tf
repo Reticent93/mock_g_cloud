@@ -15,13 +15,13 @@ data "aws_iam_policy_document" "github_assume_role" {
     }
     condition {
       test     = "StringEquals"
-      values = ["sts.amazonaws.com"]
       variable = "token.actions.githubusercontent.com:aud"
+      values = ["sts.amazonaws.com"]
     }
     condition {
       test     = "StringLike"
-      values = ["repo:${var.repo_owner}/${var.repo_name}:*"]
       variable = "token.actions.githubusercontent.com:sub"
+      values = ["repo:${var.repo_owner}/${var.repo_name}:*"]
     }
   }
 }
