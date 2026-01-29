@@ -87,5 +87,5 @@ jobs:
       # 3. Terraform Apply
       - name: Terraform Apply
         id: apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var-file="dev.tfvars"
         working-directory: environment/dev
