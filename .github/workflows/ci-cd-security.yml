@@ -41,7 +41,7 @@ jobs:
       - name: Run Checkov Scan (for Terraform)
         uses: bridgecrewio/checkov-action@v1
         with:
-          directory: environments/dev
+          directory: ./environments/dev
           soft_fail: true
 
   # Job 3: Deploy to AWS (Continuous Delivery)
@@ -79,10 +79,10 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
-        working-directory: environments/dev
+        working-directory: ./environments/dev
 
       # 3. Terraform Apply
       - name: Terraform Apply
         id: apply
         run: terraform apply -auto-approve
-        working-directory: environments/dev
+        working-directory: ./environments/dev
