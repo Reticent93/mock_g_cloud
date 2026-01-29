@@ -92,7 +92,7 @@ resource "aws_iam_role" "vpc_flow_log_role" {
       }
     ]
   })
-  max_session_duration = 3600 // 1 hour which is the default
+  max_session_duration = 3600 # 1 hour which is the default
 
 }
 
