@@ -41,7 +41,7 @@ jobs:
       - name: Run Checkov Scan (for Terraform)
         uses: bridgecrewio/checkov-action@v1
         with:
-          directory: ./environments/dev
+          directory: environments/dev
           soft_fail: true
 
   # Job 3: Deploy to AWS (Continuous Delivery)
