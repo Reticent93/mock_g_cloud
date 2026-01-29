@@ -36,7 +36,6 @@ module "dev_iam" {
   db_password_secret_arn   = module.dev_db.db_password_secret_arn
 }
 
-
 module "dev_vpc" {
   source                 = "../../modules/vpc"
   project_name           = var.project_name
