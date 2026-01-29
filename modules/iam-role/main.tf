@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github_actions[0].arn]
+      identifiers = [var.oidc_provider_arn]
     }
     condition {
       test     = "StringEquals"

@@ -81,7 +81,6 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_apps" {
   referenced_security_group_id = module.dev_apps.app_sg_id
 }
 
-
 moved {
   from = module.dev_deploy_role.aws_iam_role.github_deploy_role[0]
   to   = module.dev_iam.aws_iam_role.github_deploy_role[0]
