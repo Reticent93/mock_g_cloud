@@ -72,7 +72,7 @@ resource "aws_iam_policy" "tf_state_access_policy" {
         "dynamodb:DeleteItem",
           "dynamodb:DescribeTable",
         ]
-        Resource = [ "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table "]
+        Resource = [ "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table"]
       }
     ]
   })
