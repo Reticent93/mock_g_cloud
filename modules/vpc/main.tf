@@ -87,7 +87,6 @@ resource "aws_eip" "nat" {
   }
 }
 
-
 #---------------ROUTE TABLE-----------------------#
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.first.id
