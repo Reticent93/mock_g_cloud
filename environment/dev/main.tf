@@ -72,6 +72,7 @@ module "dev_db" {
   vpc_id       = module.dev_vpc.vpc_id
 }
 
+
 resource "aws_vpc_security_group_egress_rule" "alb_to_apps" {
   description = "Allows LB to send traffic to App"
   from_port        = 80
