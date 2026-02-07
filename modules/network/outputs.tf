@@ -27,3 +27,31 @@ output "flow_log_group_arn" {
   description = "ARN of the CloudWatch Log Group for Flow Logs"
   value = aws_flow_log.main.arn
 }
+
+output "rds_hostname" {
+  description = "RDS instance hostname"
+  value = aws_db_instance.first_postgres.address
+}
+
+output "rds_port" {
+  description = "RDS instance port"
+  value = aws_db_instance.first_postgres.port
+}
+
+output "rds_username" {
+  description = "RDS instance username"
+  value = aws_db_instance.first_postgres.username
+}
+
+output "db_resource_id" {
+  value = aws_db_instance.first_postgres.resource_id
+}
+
+output "db_endpoint" {
+  description = "endpoint for RDS instance"
+  value = split(":", aws_db_instance.first_postgres.endpoint)[0]
+}
+
+output "db_password_secret_arn" {
+  value = aws_db_instance.first_postgres.master_user_secret[0].secret_arn
+}

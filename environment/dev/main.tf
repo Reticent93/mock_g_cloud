@@ -50,7 +50,7 @@ module "dev_vpc" {
 }
 
 module "dev_apps" {
-  source = "../../modules/app"
+  source = "../../modules/application"
   project_name = var.project_name
   aws_region = var.aws_region
   alb_sg_id = module.dev_vpc.alb_sg_id

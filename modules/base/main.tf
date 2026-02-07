@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+  }
+}
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
@@ -53,10 +61,10 @@ resource "aws_iam_policy" "tf_state_access_policy" {
         Sid = "S3StateAccess"
         Effect = "Allow"
         Action = [
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
         ]
         Resource = [
           "arn:aws:s3:::${var.state_bucket_name}",
@@ -67,9 +75,9 @@ resource "aws_iam_policy" "tf_state_access_policy" {
         Sid = "DynamoDBLocking"
         Effect = "Allow"
         Action = [
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
           "dynamodb:DescribeTable",
         ]
         Resource = ["arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table"]
@@ -171,9 +179,17 @@ resource "aws_iam_role_policy" "secrets_read" {
     Statement = [
       {
         Effect = "Allow"
-        Action = "secretsmanager:GetSecretValue"
-        Resource = var.db_password_secret_arn
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:rds!db-*"
       }]
   })
 }
+
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  name = "${var.project_name}-flow-logs"
+}
+
 

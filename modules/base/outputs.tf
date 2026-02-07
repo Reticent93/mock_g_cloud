@@ -12,3 +12,11 @@ output "aws_instance_profile_name" {
   description = "IAM instance profile name"
   value = aws_iam_instance_profile.app_profile.name
 }
+
+output "db_password_secret_arn" {
+  value = aws_secretsmanager_secret.db_pass.arn
+}
+
+output "github_deploy_role_arn" {
+  value = aws_iam_role.github_deploy_role[0].arn
+}
