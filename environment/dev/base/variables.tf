@@ -1,17 +1,17 @@
 variable "repo_owner" {
-  type = "string"
+  type = string
 }
 
 variable "repo_name" {
-  type = "string"
+  type = string
 }
 
 variable "aws_region" {
-  type        = string
+  type = string
 }
 
 variable "project_name" {
-  type        = string
+  type = string
 }
 
 variable "aws_account_id" {
@@ -23,15 +23,15 @@ variable "state_bucket_name" {
 }
 
 variable "create_oidc_provider" {
-  type    = bool
+  type = bool
 }
 
 variable "create_deploy_role" {
-  type    = bool
+  type = bool
 }
 
 variable "deploy_role_name" {
-  type    = string
+  type = string
 }
 
 variable "db_user" {

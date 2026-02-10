@@ -66,7 +66,3 @@ variable "db_user" {
   type        = string
   default     = "dbadmin"
 }
-
-variable "db_password_secret_arn" {
-  description = "ARN of the DB password secret in RDS"
-}

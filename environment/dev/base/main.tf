@@ -16,10 +16,10 @@ module "base" {
   aws_account_id = var.aws_account_id
   aws_cloudwatch_log_group = var.aws_cloudwatch_log_group
   oidc_provider_arn = var.oidc_provider_arn
-  db_password_secret_arn = module.base.db_password_secret_arn
+
 }
 
 import {
-  id = "Github_Actions_Deploy_Role_DEV"
+  id = "GitHub_Actions_Deploy_Role_DEV"
   to = module.base.aws_iam_role.github_deploy_role[0]
 }

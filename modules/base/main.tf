@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.81.0"
-    }
-  }
-}
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
@@ -20,7 +12,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github_actions[0].arn]
+      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : var.create_oidc_provider]
     }
     condition {
       test     = "StringEquals"
@@ -149,6 +141,7 @@ resource "aws_iam_role" "app_role" {
 }
 
 resource "aws_iam_policy" "rds_connect_policy" {
+  count = var.db_resource_id != null ? 1 : 0
   description = "Allows EC2 connect to my Postgres RDS using IAM"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -161,10 +154,10 @@ resource "aws_iam_policy" "rds_connect_policy" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "rds_policy_attach" {
-  role = aws_iam_role.app_role.name
-  policy_arn = aws_iam_policy.rds_connect_policy.arn
-}
+# resource "aws_iam_role_policy_attachment" "rds_policy_attach" {
+#   role = aws_iam_role.app_role.name
+#   policy_arn = aws_iam_policy.rds_connect_policy[0].arn
+# }
 
 resource "aws_iam_instance_profile" "app_profile" {
   name = "${var.project_name}-app-profile"
