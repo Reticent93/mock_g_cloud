@@ -193,28 +193,17 @@ resource "aws_kms_key" "flow_log_key" {
 resource "aws_security_group" "db_sg" {
   # checkov:skip=CKV2_AWS_5:Attached to RDS in the database module
   description = "Allows ALB SG traffic only"
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.first.id
 
   tags = {
     Name = "${var.project_name}-db-sg"
   }
 }
 
-# Allows DB SG to receive traffic from App SG
-resource "aws_vpc_security_group_ingress_rule" "db_from_apps_ingress" {
-  description = "Allows traffic from app to db"
-  from_port         = 5432
-  to_port           = 5432
-  ip_protocol    = "tcp"
-  security_group_id = aws_security_group.db_sg.id
-  referenced_security_group_id = var.apps_sg_id
-}
-
-
 #-----------------SUBNET-------------------#
 resource "aws_db_subnet_group" "db_subnet_group" {
   name = "${var.project_name}-db-subnet-sg"
-  subnet_ids = var.private_subnet_ids
+  subnet_ids = [for s in aws_subnet.primary_subnet : s.id if s.tags["Type"] == "db"]
 
   tags = {
     Name = "${var.project_name}-db-subnet-group"

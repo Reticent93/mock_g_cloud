@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+  }
+}
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -58,6 +66,30 @@ resource "aws_alb_target_group" "app_tg" {
     path = "/"
     healthy_threshold   = 2
     unhealthy_threshold = 6
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "db_from_apps_ingress" {
+  description = "Allow access from App instances on PG port"
+  from_port = 5432
+  to_port = 5432
+  ip_protocol       = "tcp"
+  security_group_id = var.db_security_group_id
+  referenced_security_group_id = aws_security_group.apps_sg.id
+
+  tags = {
+    Name = "${var.project_name}-db-from-app"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "apps_to_db_egress" {
+  description = "Allow access from App to reach DB"
+  ip_protocol       = "tcp"
+  security_group_id = aws_security_group.apps_sg.id
+  referenced_security_group_id = var.db_security_group_id
+
+  tags = {
+    Name = "${var.project_name}-app-to-db"
   }
 }
 

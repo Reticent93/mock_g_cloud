@@ -55,3 +55,13 @@ output "db_endpoint" {
 output "db_password_secret_arn" {
   value = aws_db_instance.first_postgres.master_user_secret[0].secret_arn
 }
+
+output "db_security_group_id" {
+  description = "DB SG ID for App layer"
+  value = aws_security_group.db_sg.id
+}
+
+output "alb_security_group_id" {
+  description = "ALB SG ID for App layer"
+  value = aws_security_group.alb_sg.id
+}

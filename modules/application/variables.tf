@@ -64,4 +64,9 @@ variable "db_secret_arn" {
   type = string
 }
 
+variable "db_security_group_id" {
+  description = "DB SG ID from Network layer"
+  type = string
+}
+
 
