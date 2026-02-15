@@ -32,16 +32,19 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
       - name: CodeQL Analysis
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
       - name: Run Checkov Scan (for Terraform)
         uses: bridgecrewio/checkov-action@v1
         with:
-          directory: environments/dev
+          directory: environment/dev
           soft_fail: true
 
   # Job 3: Deploy to AWS (Continuous Delivery)
@@ -76,16 +79,24 @@ jobs:
           role-to-assume: ${{ secrets.AWS_OIDC_DEPLOY_ROLE_ARN }}
           aws-region: us-west-2
 
-      # 2. Terraform Init
-      - name: Terraform Init
-        id: init
+      # 2a. Terraform Init NETWORK LAYER
+      - name: Terraform Network
+        working-directory: environment/dev/network
         run: |
-          terraform init \
-            -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
-        working-directory: environment/dev
+          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
+          terraform apply -auto-approve -var-file="terraform.tfvars"
 
-      # 3. Terraform Apply
-      - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve -var-file="dev.tfvars"
-        working-directory: environment/dev
+      # 2b. Terraform Init BASE LAYER
+      - name: Terraform Base
+        working-directory: environment/dev/base
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
+          terraform apply -auto-approve -var-file="terraform.tfvars"  
+
+      # 2c. Terraform Init APP LAYER
+      - name: Terraform App
+        working-directory: environment/dev/app
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
+          terraform apply -auto-approve -var-file="terraform.tfvars"    
+
