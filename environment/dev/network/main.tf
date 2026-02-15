@@ -16,9 +16,3 @@ module "network" {
   vpc_cidr = var.vpc_cidr
 
 }
-#
-#
-# import {
-#   id = "mock-g-cloud-flow-logs"
-#   to = module.network.aws_cloudwatch_log_group.vpc_flow_log
-# }

@@ -18,17 +18,6 @@ resource "aws_security_group" "apps_sg" {
   }
 }
 
-# Allows App SG to talk to DB
-resource "aws_vpc_security_group_egress_rule" "apps_to_db" {
-  description = "Allows db traffic to apps"
-  from_port         = 5432
-  to_port           = 5432
-  ip_protocol          = "tcp"
-  security_group_id = aws_security_group.apps_sg.id
-  referenced_security_group_id = var.db_sg_id
-
-}
-
 # Inbound traffic ONLY from LB
 resource "aws_vpc_security_group_ingress_rule" "apps_from_alb_ingress" {
   # checkov:skip=CKV_AWS_260: Port 80 is restricted to ALB SG, not public
@@ -40,12 +29,12 @@ resource "aws_vpc_security_group_ingress_rule" "apps_from_alb_ingress" {
   referenced_security_group_id = var.alb_sg_id
 }
 
-resource "aws_vpc_security_group_egress_rule" "apps_all_egress" {
-  description = "Allow App to reach internet via NG"
-  ip_protocol          = "-1"
-  cidr_ipv4 = "0.0.0.0/0"
-  security_group_id = aws_security_group.apps_sg.id
-}
+# resource "aws_vpc_security_group_egress_rule" "apps_all_egress" {
+#   description = "Allow App to reach internet via NG"
+#   ip_protocol          = "-1"
+#   cidr_ipv4 = "0.0.0.0/0"
+#   security_group_id = aws_security_group.apps_sg.id
+# }
 
 resource "aws_alb_target_group" "app_tg" {
   # checkov:skip=CKV_AWS_378:Target group is using HTTP for this project. No SSL certificate is available
@@ -76,6 +65,8 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_apps_ingress" {
 
 resource "aws_vpc_security_group_egress_rule" "apps_to_db_egress" {
   description = "Allow access from App to reach DB"
+  from_port = 5432
+  to_port = 5432
   ip_protocol       = "tcp"
   security_group_id = aws_security_group.apps_sg.id
   referenced_security_group_id = var.db_security_group_id
@@ -83,6 +74,15 @@ resource "aws_vpc_security_group_egress_rule" "apps_to_db_egress" {
   tags = {
     Name = "${var.project_name}-app-to-db"
   }
+}
+
+resource "aws_vpc_security_group_egress_rule" "apps_to_web_egress" {
+  description = "Allows access to web for updates"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+  cidr_ipv4 = "0.0.0.0/0"
+  security_group_id = aws_security_group.apps_sg.id
 }
 
 resource "aws_launch_template" "app_lt" {
@@ -133,7 +133,8 @@ resource "aws_launch_template" "app_lt" {
     echo "DATABASE_URL=postgres://$DB_USER:$DB_PASS@${var.db_endpoint}/myfirstpostgres" >> /etc/environment
 
     # Attempt to connect to port
-    if nc -zv $DB_ENDPOINT 5432 -w 5 > /tmp/db.test.log 2>&1; then
+    DB_ENDPOINT_HOST=${var.db_endpoint}
+    if nc -zv $DB_ENDPOINT_HOST -w 5 > /tmp/db.test.log 2>&1; then
       RESULT="SUCCESS: Connected to the database at $DB_ENDPOINT"
     else
       RESULT="FAILURE: Could not reach the database at $DB_ENDPOINT. Check SGs!"
