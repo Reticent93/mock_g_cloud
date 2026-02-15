@@ -24,7 +24,7 @@ resource "aws_default_security_group" "default" {
 
 resource "aws_security_group" "alb_sg" {
   # checkov:skip=CKV2_AWS_5:Attached to ALB in App module
-  name = "${var.project_name}-alb-sg"
+  name_prefix = "${var.project_name}-alb-sg"
   description = "Inbound subnet traffic only"
   vpc_id = aws_vpc.first.id
 
@@ -87,6 +87,19 @@ resource "aws_eip" "nat" {
   }
 }
 
+#---------------ROUTE-----------------------#
+resource "aws_route" "public_internet_access" {
+  route_table_id = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.main.id
+}
+
+resource "aws_route" "private_internet_access" {
+  route_table_id = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
+}
+
 #---------------ROUTE TABLE-----------------------#
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.first.id
@@ -136,7 +149,6 @@ resource "aws_flow_log" "main" {
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.first.id
 }
-
 
 #---------------KMS-----------------------#
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
@@ -242,8 +254,8 @@ resource "aws_db_instance" "first_postgres" {
   allocated_storage = 20
   db_name = "myfirstpostgres"
   username = "dbadmin"
-  multi_az = true
-  monitoring_interval = 60
+  multi_az = var.multi_az
+  monitoring_interval = 0
   performance_insights_enabled = true
   deletion_protection = false # Set to true for production
   auto_minor_version_upgrade = true

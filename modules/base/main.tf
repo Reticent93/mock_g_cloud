@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : var.create_oidc_provider]
+      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : var.oidc_provider_arn]
     }
     condition {
       test     = "StringEquals"
@@ -117,7 +117,7 @@ resource "aws_iam_policy" "flow_log_policy" {
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams",
         ]
-        Resource = var.aws_cloudwatch_log_group
+        Resource = "${aws_cloudwatch_log_group.vpc_flow_log.arn}:*"
       }
     ]
   })
@@ -126,7 +126,7 @@ resource "aws_iam_policy" "flow_log_policy" {
 
 #-------------------EC2 ROLE--------------------------#
 resource "aws_iam_role" "app_role" {
-  name = "${var.project_name}app-role"
+  name = "${var.project_name}-app-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

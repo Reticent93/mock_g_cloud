@@ -23,3 +23,23 @@ import {
   id = "GitHub_Actions_Deploy_Role_DEV"
   to = module.base.aws_iam_role.github_deploy_role[0]
 }
+
+import {
+  id = "arn:aws:iam::${var.aws_account_id}:policy/Github-TF-State_Access-Policy-GitHub_Actions_Deploy_Role_DEV"
+  to = module.base.aws_iam_policy.tf_state_access_policy
+}
+
+import {
+  id = "mock-g-cloud-app-role"
+  to = module.base.aws_iam_role.app_role
+}
+
+import {
+  id = "mock-g-cloud-flow-logs-role"
+  to = module.base.aws_iam_role.vpc_flow_log_role
+}
+
+import {
+  id = "mock-g-cloud-app-profile"
+  to = module.base.aws_iam_instance_profile.app_profile
+}

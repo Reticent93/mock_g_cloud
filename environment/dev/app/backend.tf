@@ -5,6 +5,13 @@ terraform {
     region = "us-west-2"
     use_lockfile = true
   }
+
+  required_providers  {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
 }
 
 data "terraform_remote_state" "network" {
@@ -24,3 +31,4 @@ data "terraform_remote_state" "base" {
     region = "us-west-2"
   }
 }
+

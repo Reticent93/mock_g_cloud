@@ -10,3 +10,11 @@ variable "flow_log_role_arn" {
 variable "vpc_cidr" {
   type        = string
 }
+
+variable "state_bucket_name" {
+  type        = string
+}
+
+variable "aws_region" {
+  type        = string
+}

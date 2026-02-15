@@ -35,3 +35,8 @@ variable "instance_class" {
   type = string
   default = "db.t3.micro"
 }
+
+variable "multi_az" {
+  type = bool
+  default = false
+}
