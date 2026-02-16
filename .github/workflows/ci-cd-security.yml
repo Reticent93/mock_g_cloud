@@ -84,7 +84,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_DEPLOY_ROLE_ARN }}
           aws-region: us-west-2
-          aws-role-sts-endpoint: https://sts.us-west-2.amazonaws.com
+          role-session-name: GitHubActions-${{github.run_id}}
 
 
       # 2a. Terraform Init NETWORK LAYER
