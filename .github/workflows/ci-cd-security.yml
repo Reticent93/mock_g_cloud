@@ -44,7 +44,7 @@ jobs:
       - name: Run Checkov Scan (for Terraform)
         uses: bridgecrewio/checkov-action@v1
         with:
-#          directory: environment/dev
+          directory: environment/dev
           soft_fail: true
 
   # Job 3: Deploy to AWS (Continuous Delivery)
@@ -84,6 +84,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_DEPLOY_ROLE_ARN }}
           aws-region: us-west-2
+
 
       # 2a. Terraform Init NETWORK LAYER
       - name: Terraform Network
