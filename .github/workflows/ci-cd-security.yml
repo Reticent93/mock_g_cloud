@@ -90,7 +90,7 @@ jobs:
         run: find . -name "*tfvars"
 
       - name: Terraform Plan
-        run: terraform plan -no-color -input=false -var-file="terraform.tfvars"
+        run: terraform plan -no-color -input=false -var-file="network.tfvars"
         working-directory: environment/dev/network
 
       # 2b. BASE LAYER
@@ -100,7 +100,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: environment/dev/base
-        run: terraform plan -no-color -input=false -var-file="terraform.tfvars"
+        run: terraform plan -no-color -input=false -var-file="base.tfvars"
 
       # 2c. APP LAYER
       - name: Terraform Init
@@ -109,4 +109,4 @@ jobs:
 
       - name: Terraform Plan
         working-directory: environment/dev/app
-        run: terraform plan -no-color -input=false -var-file="terraform.tfvars"
+        run: terraform plan -no-color -input=false -var-file="app.tfvars"
