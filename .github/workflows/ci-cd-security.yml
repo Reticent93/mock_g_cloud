@@ -88,7 +88,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./environment/dev/network
-        run: terraform plan -no-color -input=false
+        run: terraform plan -no-color -input=false -lock-timeout=3m
         env:
           TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
           TF_VAR_vpc_cidr: ${{ secrets.VPC_CIDR }}
