@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.81.0"
-    }
-  }
-}
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
@@ -30,7 +22,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = "[repo:${var.repo_owner}/${var.repo_name}:*]"
+      values = ["repo:${var.repo_owner}/${var.repo_name}:environment:dev"]
     }
   }
 }
