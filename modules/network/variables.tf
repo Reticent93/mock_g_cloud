@@ -40,3 +40,8 @@ variable "multi_az" {
   type = bool
   default = false
 }
+
+variable "rds_monitoring_arn" {
+  description = "ARN for RDS enhanced monitoring "
+  type = string
+}

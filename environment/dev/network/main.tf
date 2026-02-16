@@ -14,5 +14,5 @@ module "network" {
   key_deletion_window = 7
   project_name = var.project_name
   vpc_cidr = var.vpc_cidr
-
+  rds_monitoring_arn = data.terraform_remote_state.base.outputs.rds_monitoring_role_arn
 }

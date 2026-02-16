@@ -237,6 +237,7 @@ resource "aws_db_parameter_group" "db_pg" {
 resource "aws_db_instance" "first_postgres" {
   # checkov:skip=CKV_AWS_293:Deletion protection set to false for daily destroy
   # checkov:skip=CKV_AWS_354: Using AWS managed key is ok for dev
+  # checkov:skip=CKV_AWS_157: Multi-AZ is disabled to minimize cost
   identifier = "${var.project_name}-db"
   instance_class = var.instance_class
   engine = "postgres"
@@ -245,7 +246,8 @@ resource "aws_db_instance" "first_postgres" {
   db_name = "myfirstpostgres"
   username = "dbadmin"
   multi_az = var.multi_az
-  monitoring_interval = 0
+  monitoring_interval = 60
+  monitoring_role_arn = var.rds_monitoring_arn
   performance_insights_enabled = true
   deletion_protection = false # Set to true for production
   auto_minor_version_upgrade = true
