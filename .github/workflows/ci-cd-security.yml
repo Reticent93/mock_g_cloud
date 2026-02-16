@@ -83,15 +83,17 @@ jobs:
 
       # 2a. NETWORK LAYER
       - name: Terraform Init
-        working-directory: environment/dev/network
+        working-directory: ./environment/dev/network
         run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
       - name: Find tfvars file
         run: find . -name "*tfvars"
 
       - name: Terraform Plan
+        working-directory: ./environment/dev/network
         run: terraform plan -no-color -input=false -var-file="network.tfvars"
-        working-directory: environment/dev/network
+
+
 
       # 2b. BASE LAYER
       - name: Terraform Init
