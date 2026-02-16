@@ -81,12 +81,14 @@ jobs:
           role-session-name: GitHubActions-${{github.run_id}}
 
 
-      # 2a. Terraform Init NETWORK LAYER
-      - name: Terraform Network
+      # 2a. NETWORK LAYER
+      - name: Terraform Init
         working-directory: environment/dev/network
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
-          terraform apply -auto-approve -var-file="terraform.tfvars"
+        run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
+
+      - name: Terraform Plan
+        working-directory: environment/dev/network
+        run: terraform plan -no-color
 
       # 2b. Terraform Init BASE LAYER
       - name: Terraform Base
