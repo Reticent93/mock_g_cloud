@@ -24,12 +24,6 @@ variable "key_deletion_window" {
   type        = number
 }
 
-variable "app_sg" {
-  description = "ID of security group for apps"
-  type = string
-  default = null
-}
-
 variable "instance_class" {
   description = "The type of DB instance"
   type = string
