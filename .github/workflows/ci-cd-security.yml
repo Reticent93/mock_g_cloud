@@ -86,16 +86,14 @@ jobs:
         working-directory: ./environment/dev/network
         run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
-      - name: Debug - List files in network directory
-        working-directory: ./environment/dev/network
-        run: |
-          pwd
-          ls -la
-          ls -la *tfvars || echo "No tfvars files found
-
       - name: Terraform Plan
         working-directory: ./environment/dev/network
-        run: terraform plan -no-color -input=false -var-file="network.tfvars"
+        run: terraform plan -no-color -input=false
+        env:
+          TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+          TF_VAR_vpc_cidr: ${{ secrets.VPC_CIDR }}
+          TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
+
 
 
 
