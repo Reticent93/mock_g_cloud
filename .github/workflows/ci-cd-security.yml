@@ -90,8 +90,8 @@ jobs:
         run: find . -name "*tfvars"
 
       - name: Terraform Plan
-        working-directory: environment/dev/network
         run: terraform plan -no-color -input=false -var-file="terraform.tfvars"
+        working-directory: environment/dev/network
 
       # 2b. BASE LAYER
       - name: Terraform Init
