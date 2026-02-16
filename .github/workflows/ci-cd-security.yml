@@ -90,17 +90,20 @@ jobs:
         working-directory: environment/dev/network
         run: terraform plan -no-color
 
-      # 2b. Terraform Init BASE LAYER
-      - name: Terraform Base
+      # 2b. BASE LAYER
+      - name: Terraform Init
         working-directory: environment/dev/base
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
-          terraform apply -auto-approve -var-file="terraform.tfvars"  
+        run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
-      # 2c. Terraform Init APP LAYER
-      - name: Terraform App
+      - name: Terraform Plan
+        working-directory: environment/dev/base
+        run: terraform plan -no-color
+
+      # 2c. APP LAYER
+      - name: Terraform Init
         working-directory: environment/dev/app
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
-          terraform apply -auto-approve -var-file="terraform.tfvars"    
+        run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
+      - name: Terraform Plan
+        working-directory: environment/dev/app
+        run: terraform plan -no-color
