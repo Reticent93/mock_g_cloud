@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = ["repo:${var.repo_owner}/${var.repo_name}:environment:dev"]
+      values = ["repo:Reticent93/mock_g_cloud*"]
     }
   }
 }
