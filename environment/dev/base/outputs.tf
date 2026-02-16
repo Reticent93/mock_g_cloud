@@ -9,3 +9,7 @@ output "github_deploy_role_arn" {
 output "vpc_flow_log_role_arn" {
   value = module.base.flow_log_role_arn
 }
+
+output "rds_monitoring_role_arn" {
+  value = module.base.rds_monitoring_role_arn
+}
