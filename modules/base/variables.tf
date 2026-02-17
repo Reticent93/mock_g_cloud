@@ -46,10 +46,6 @@ variable "aws_cloudwatch_log_group" {
   type        = string
 }
 
-variable "kms_key_id" {
-  description = "KMS key ARN to use to encrypt data"
-  type        = string
-}
 
 variable "db_resource_id" {
   description = "resource id for db instance"

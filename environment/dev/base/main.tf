@@ -14,7 +14,6 @@ module "base" {
   aws_account_id = var.aws_account_id
   aws_cloudwatch_log_group = var.aws_cloudwatch_log_group
   oidc_provider_arn = var.oidc_provider_arn
-  kms_key_id = var.kms_key_id
 }
 
 import {

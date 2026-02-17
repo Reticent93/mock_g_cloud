@@ -20,3 +20,7 @@ output "github_deploy_role_arn" {
 output "rds_monitoring_role_arn" {
   value = aws_iam_role.rds_monitoring.arn
 }
+
+output "kms_key_arn" {
+  value = aws_kms_key.first_key.arn
+}

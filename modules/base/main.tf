@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
   client_id_list = ["sts.amazonaws.com", ]
@@ -176,9 +178,8 @@ resource "aws_iam_role_policy" "secrets_read" {
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
-  #checkov:skip=CKV_AWS_158: KMS encryption coming soon
   name = "${var.project_name}-flow-logs"
-  kms_key_id = var.kms_key_id
+  kms_key_id = aws_kms_key.first_key.arn
   retention_in_days = 365
 
 }
@@ -200,5 +201,69 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring_attachment" {
   role = aws_iam_role.rds_monitoring.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 
+}
+
+resource "aws_kms_key" "first_key" {
+  description = "KEY for Cloudwatch Flow Logs"
+  enable_key_rotation = true
+  deletion_window_in_days = 30
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      },
+      Action = "kms:*",
+      Resource = "*"
+    },
+      {
+        Sid = "Allow Github Actions to use key"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.github_deploy_role.name}"
+        },
+        Action = [
+          "kms:Create*",
+          "kms:Describe*",
+          "kms:Enable*",
+          "kms:List*",
+          "kms:Put*",
+          "kms:Update*",
+          "kms:Revoke*",
+          "kms:Disable*",
+          "kms:Get*",
+          "kms:Delete*",
+          "kms:ScheduleKeyDeletion",
+          "kms:CancelKeyDeletion",
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:GenerateDataKey*"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow CloudWatch Logs to use the key"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${var.aws_region}.amazonaws.com"
+        },
+        Action = [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ],
+        Resource = "*",
+        Condition = {
+          ArnLike = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+          }
+        },
+      },
+    ],
+  })
 }
 
