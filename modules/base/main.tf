@@ -97,7 +97,6 @@ resource "aws_iam_role" "vpc_flow_log_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "flow_logs_iam_role_attachment" {
-  count = var.create_deploy_role ? 1 : 0
   role = aws_iam_role.vpc_flow_log_role.name
   policy_arn = aws_iam_policy.flow_log_policy.arn
 }
@@ -177,8 +176,9 @@ resource "aws_iam_role_policy" "secrets_read" {
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
-  #checkov:skip=CKV_AWS_158: KNM encryption coming soon
+  #checkov:skip=CKV_AWS_158: KMS encryption coming soon
   name = "${var.project_name}-flow-logs"
+  kms_key_id = var.kms_key_id
   retention_in_days = 365
 
 }

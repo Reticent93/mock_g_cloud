@@ -20,16 +20,6 @@ variable "create_deploy_role" {
   default     = false
 }
 
-variable "repo_owner" {
-  description = "Owner of GitHub repository"
-  type        = string
-}
-
-variable "repo_name" {
-  description = "Name of GitHub repository"
-  type        = string
-}
-
 variable "state_bucket_name" {
   description = "Name of S3 bucket to store Terraform state files"
   type        = string
@@ -53,6 +43,11 @@ variable "project_name" {
 
 variable "aws_cloudwatch_log_group" {
   description = "CloudWatch log group that will receive log objects"
+  type        = string
+}
+
+variable "kms_key_id" {
+  description = "KMS key ARN to use to encrypt data"
   type        = string
 }
 

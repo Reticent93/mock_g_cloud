@@ -114,9 +114,9 @@ jobs:
           TF_VAR_oidc_provider_arn: ${{ secrets.OIDC_PROVIDER_ARN }}
           TF_VAR_repo_name: ${{ secrets.REPO_NAME }}
           TF_VAR_repo_owner: ${{ secrets.REPO_OWNER }}
-          TF_VAR_create_deploy_role: ${{ secrets.CREATE_DEPLOY_ROLE }}
+          TF_VAR_create_deploy_role: ${{ false }}
           TF_VAR_deploy_role_name: ${{ secrets.DEPLOY_ROLE_NAME }}
-          TF_VAR_create_oidc_provider: ${{ secrets.CREATE_OIDC_PROVIDER }}
+          TF_VAR_create_oidc_provider: ${{ true }}
           TF_VAR_db_user: ${{ secrets.DB_USER }}
           TF_VAR_db_resource_id: ${{ secrets.DB_RESOURCE_ID }}
           TF_VAR_aws_cloudwatch_log_group: ${{ secrets.AWS_CLOUDWATCH_LOG_GROUP }}
