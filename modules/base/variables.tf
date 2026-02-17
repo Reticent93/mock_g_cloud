@@ -1,7 +1,7 @@
 variable "create_oidc_provider" {
   description = "Controls whether the OIDC provider should be created"
   type        = bool
-  default     = false
+
 }
 
 variable "oidc_provider_arn" {
@@ -17,7 +17,6 @@ variable "deploy_role_name" {
 variable "create_deploy_role" {
   description = "Controls whether an IAM role should be created"
   type        = bool
-  default     = false
 }
 
 variable "state_bucket_name" {

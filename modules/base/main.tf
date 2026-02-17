@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[*].arn : var.oidc_provider_arn]
+      identifiers = [var.create_oidc_provider ? one(aws_iam_openid_connect_provider.github_actions[*].arn) : var.oidc_provider_arn]
     }
     condition {
       test     = "StringEquals"
@@ -47,7 +47,7 @@ resource "aws_iam_role_policy_attachment" "github_deploy_state_access" {
 }
 
 resource "aws_iam_policy" "tf_state_access_policy" {
-  name = "Github-TF-State_Access-Policy-${var.deploy_role_name}"
+  name        = "Github-TF-State_Access-Policy-${var.deploy_role_name}"
   description = "Minimal permissions for Github Actions to manage Terraform state file"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -55,27 +55,30 @@ resource "aws_iam_policy" "tf_state_access_policy" {
       {
         Sid = "S3StateAccess"
         Effect = "Allow"
-        Action = [
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-        ]
-        Resource = [
-          "arn:aws:s3:::${var.state_bucket_name}",
-          "arn:aws:s3:::${var.state_bucket_name}/*"
-        ]
+        Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Resource = ["arn:aws:s3:::${var.state_bucket_name}", "arn:aws:s3:::${var.state_bucket_name}/*"]
       },
       {
         Sid = "DynamoDBLocking"
         Effect = "Allow"
-        Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
-          "dynamodb:DescribeTable",
-        ]
+        Action = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:DescribeTable"]
         Resource = ["arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table"]
+      },
+      {
+        Sid = "DiscoveryPermissions"
+        Effect = "Allow"
+        Action = [
+          "ec2:Describe*",
+          "rds:Describe*",
+          "logs:Describe*",
+          "iam:Get*",
+          "iam:List*",
+          "kms:Describe*",
+          "kms:Get*",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "*"
       }
     ]
   })
