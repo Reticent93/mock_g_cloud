@@ -14,7 +14,7 @@ output "aws_instance_profile_name" {
 }
 
 output "github_deploy_role_arn" {
-  value = aws_iam_role.github_deploy_role[0].arn
+  value = aws_iam_role.github_deploy_role[*].arn
 }
 
 output "rds_monitoring_role_arn" {
