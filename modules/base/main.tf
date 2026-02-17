@@ -2,6 +2,7 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.create_oidc_provider ? 1 : 0 # Create only if variable is true
+
   client_id_list = ["sts.amazonaws.com", ]
   url = "https://token.actions.githubusercontent.com"
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
@@ -14,7 +15,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : var.oidc_provider_arn]
+      identifiers = [var.create_oidc_provider ? aws_iam_openid_connect_provider.github_actions[*].arn : var.oidc_provider_arn]
     }
     condition {
       test     = "StringEquals"
