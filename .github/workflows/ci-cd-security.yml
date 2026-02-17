@@ -116,7 +116,7 @@ jobs:
           TF_VAR_repo_owner: ${{ secrets.REPO_OWNER }}
           TF_VAR_create_deploy_role: ${{ false }}
           TF_VAR_deploy_role_name: ${{ secrets.DEPLOY_ROLE_NAME }}
-          TF_VAR_create_oidc_provider: ${{ true }}
+          TF_VAR_create_oidc_provider: ${{ false }}
           TF_VAR_db_user: ${{ secrets.DB_USER }}
           TF_VAR_db_resource_id: ${{ secrets.DB_RESOURCE_ID }}
           TF_VAR_aws_cloudwatch_log_group: ${{ secrets.AWS_CLOUDWATCH_LOG_GROUP }}
