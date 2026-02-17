@@ -222,7 +222,7 @@ resource "aws_kms_key" "first_key" {
         Sid = "Allow Github Actions to use key"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.github_deploy_role.name}"
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.github_deploy_role[0].name}"
         },
         Action = [
           "kms:Create*",
