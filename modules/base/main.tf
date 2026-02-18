@@ -54,9 +54,17 @@ resource "aws_iam_policy" "tf_state_access_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "S3StateAccess"
+        Sid    = "S3StateWrite"
         Effect = "Allow"
-        Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Action = [ "s3:PutObject", "s3:DeleteObject"]
+        Resource = [
+          "arn:aws:s3:::${var.state_bucket_name}/*"
+        ]
+      },
+      {
+        Sid = "S3StateRead",
+        Effect = "Allow"
+        Action = ["s3:ListBucket", "s3:GetObject"]
         Resource = [
           "arn:aws:s3:::${var.state_bucket_name}",
           "arn:aws:s3:::${var.state_bucket_name}/*"
