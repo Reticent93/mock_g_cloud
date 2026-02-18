@@ -88,7 +88,7 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "rds:ListTagsForResource",
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams",
-          "log:ListTagsForResource",
+          "logs:ListTagsForResource",
           "iam:GetAccountSummary",
           "iam:ListRoles",
           "iam:ListPolicies",
