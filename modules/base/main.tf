@@ -101,6 +101,7 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "elasticloadbalancing:DescribeTargetGroupAttributes",
           "elasticloadbalancing:DescribeTags",
           "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:DescribeListenerAttributes",
           "autoscaling:DescribeAutoScalingGroups",
           "autoscaling:DescribeLaunchConfigurations",
           "autoscaling:DescribeScalingActivities"
