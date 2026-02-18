@@ -53,33 +53,51 @@ resource "aws_iam_policy" "tf_state_access_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "S3StateAccess"
+        Sid    = "S3StateAccess"
         Effect = "Allow"
         Action = ["s3:ListBucket", "s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = ["arn:aws:s3:::${var.state_bucket_name}", "arn:aws:s3:::${var.state_bucket_name}/*"]
+        Resource = [
+          "arn:aws:s3:::${var.state_bucket_name}",
+          "arn:aws:s3:::${var.state_bucket_name}/*"
+        ]
       },
       {
-        Sid = "DynamoDBLocking"
+        Sid    = "DynamoDBLocking"
         Effect = "Allow"
         Action = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem", "dynamodb:DescribeTable"]
         Resource = ["arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/tflock-lock-table"]
       },
+      # Actions that DO NOT support resource-level permissions — must use "*"
+      # Kept isolated so the other statements can use scoped ARNs
       {
-        Sid = "DiscoveryPermissions"
+        Sid    = "GlobalDiscoveryPermissions"
         Effect = "Allow"
         Action = [
           "ec2:Describe*",
           "rds:Describe*",
-          "logs:Describe*",
-          "kms:DescribeKey",
-          "kms:ListResouceTags",
-          "iam:List*",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
           "iam:GetAccountSummary",
+          "iam:ListRoles",
+          "iam:ListPolicies",
+          "iam:ListInstanceProfiles",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListRolePolicies",
         ]
-        Resource = "*"
+        Resource = ["*"]
+      },
+      # KMS describe — supports resource-level permissions
+      {
+        Sid    = "KMSDiscovery"
+        Effect = "Allow"
+        Action = [
+          "kms:DescribeKey",
+          "kms:ListResourceTags",
+        ]
+        Resource = ["arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*"]
       },
       {
-        Sid = "SensitiveResourceRead"
+        Sid    = "SensitiveResourceRead"
         Effect = "Allow"
         Action = [
           "iam:GetRole",
@@ -96,7 +114,8 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "arn:aws:iam::${var.aws_account_id}:role/*",
           "arn:aws:iam::${var.aws_account_id}:policy/*",
           "arn:aws:iam::${var.aws_account_id}:instance-profile/*",
-          "arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*"
+          "arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*",
+          "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:*",
         ]
       },
     ]
