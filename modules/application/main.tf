@@ -160,6 +160,13 @@ resource "aws_autoscaling_group" "app_asg" {
     version = "$Latest"
   }
 
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+  }
+
   tag {
     key = "${var.project_name}-app-sg"
     propagate_at_launch = true
