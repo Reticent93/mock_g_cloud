@@ -82,11 +82,11 @@ jobs:
 
 
       # 2a. NETWORK LAYER
-      - name: Terraform Init
+      - name: Terraform Init Network
         working-directory: ./environment/dev/network
         run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
-      - name: Terraform Plan
+      - name: Terraform Plan Network
         working-directory: ./environment/dev/network
         run: terraform plan -no-color -input=false -lock-timeout=3m
         env:
@@ -99,11 +99,11 @@ jobs:
 
 
       # 2b. BASE LAYER
-      - name: Terraform Init
+      - name: Terraform Init Base
         working-directory: environment/dev/base
         run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
-      - name: Terraform Plan
+      - name: Terraform Plan Base
         working-directory: environment/dev/base
         run: terraform plan -no-color -input=false -lock-timeout=3m
         env:
@@ -122,10 +122,15 @@ jobs:
           TF_VAR_aws_cloudwatch_log_group: ${{ secrets.AWS_CLOUDWATCH_LOG_GROUP }}
 
       # 2c. APP LAYER
-      - name: Terraform Init
+      - name: Terraform Init App
         working-directory: environment/dev/app
         run: terraform init -backend-config="bucket=${{ secrets.STATE_BUCKET_NAME }}"
 
-      - name: Terraform Plan
+      - name: Terraform Plan App
         working-directory: environment/dev/app
-        run: terraform plan -no-color -input=false -var-file="app.tfvars"
+        run: terraform plan -no-color -input=false -lock-timeout=3m
+        env:
+          TF_VAR_ami_id: ${{ secrets.AMI_ID }}
+          TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
+          TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+
