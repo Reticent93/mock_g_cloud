@@ -75,8 +75,6 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "kms:ListResouceTags",
           "iam:List*",
           "iam:GetAccountSummary",
-          "iam:Get*",
-          "kms:Get*"
         ]
         Resource = "*"
       },
@@ -84,14 +82,21 @@ resource "aws_iam_policy" "tf_state_access_policy" {
         Sid = "SensitiveResourceRead"
         Effect = "Allow"
         Action = [
+          "iam:GetRole",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:GetRolePolicy",
+          "iam:GetInstanceProfile",
+          "kms:GetKeyPolicy",
+          "kms:GetKeyRotationStatus",
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret",
         ]
         Resource = [
-          # "arn:aws:iam::${var.aws_account_id}:role/*",
-          # "arn:aws:iam::${var.aws_account_id}:policy/*",
-          # "arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*",
-          "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:*"
+          "arn:aws:iam::${var.aws_account_id}:role/*",
+          "arn:aws:iam::${var.aws_account_id}:policy/*",
+          "arn:aws:iam::${var.aws_account_id}:instance-profile/*",
+          "arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*"
         ]
       },
     ]
