@@ -120,6 +120,8 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "iam:GetPolicyVersion",
           "iam:GetRolePolicy",
           "iam:GetInstanceProfile",
+          "iam:ListAccountAliases",
+          "iam:GetOpenIDConnectProvider",
           "kms:GetKeyPolicy",
           "kms:GetKeyRotationStatus",
           "secretsmanager:GetSecretValue",
