@@ -99,8 +99,11 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "elasticloadbalancing:DescribeTargetGroups",
           "elasticloadbalancing:DescribeLoadBalancerAttributes",
           "elasticloadbalancing:DescribeTargetGroupAttributes",
-          "elasticloadbalancing:DescribeTags"
-
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:DescribeListeners",
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:DescribeScalingActivities"
         ]
         Resource = ["*"]
       },
