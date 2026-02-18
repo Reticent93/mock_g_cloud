@@ -131,6 +131,7 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "arn:aws:iam::${var.aws_account_id}:role/*",
           "arn:aws:iam::${var.aws_account_id}:policy/*",
           "arn:aws:iam::${var.aws_account_id}:instance-profile/*",
+          "arn:aws:iam::838207858325:oidc-provider/token.actions.githubusercontent.com",
           "arn:aws:kms:${var.aws_region}:${var.aws_account_id}:key/*",
           "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:*",
         ]
