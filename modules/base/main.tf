@@ -85,8 +85,10 @@ resource "aws_iam_policy" "tf_state_access_policy" {
         Action = [
           "ec2:Describe*",
           "rds:Describe*",
+          "rds:ListTagsForResource",
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams",
+          "log:ListTagsForResource",
           "iam:GetAccountSummary",
           "iam:ListRoles",
           "iam:ListPolicies",
