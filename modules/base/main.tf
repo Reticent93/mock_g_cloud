@@ -48,6 +48,7 @@ resource "aws_iam_role_policy_attachment" "github_deploy_state_access" {
 
 resource "aws_iam_policy" "tf_state_access_policy" {
   #checkov:skip=CKV_AWS_355:ec2/rds/iam list actions do not support resource-level permissions
+  # checkov:skip=CKV_AWS_290: Write access is strictly limited to the specific S3 State Bucket and DynamoDB Lock Table ARNs.
   name        = "Github-TF-State_Access-Policy-${var.deploy_role_name}"
   description = "Minimal permissions for Github Actions to manage Terraform state file"
   policy = jsonencode({
