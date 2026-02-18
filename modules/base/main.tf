@@ -96,8 +96,9 @@ resource "aws_iam_policy" "tf_state_access_policy" {
           "iam:ListAttachedRolePolicies",
           "iam:ListRolePolicies",
           "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeTargetGroups"
-
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:DescribeTargetGroupAttributes"
         ]
         Resource = ["*"]
       },
