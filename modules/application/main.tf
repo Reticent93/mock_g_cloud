@@ -29,13 +29,6 @@ resource "aws_vpc_security_group_ingress_rule" "apps_from_alb_ingress" {
   referenced_security_group_id = var.alb_sg_id
 }
 
-# resource "aws_vpc_security_group_egress_rule" "apps_all_egress" {
-#   description = "Allow App to reach internet via NG"
-#   ip_protocol          = "-1"
-#   cidr_ipv4 = "0.0.0.0/0"
-#   security_group_id = aws_security_group.apps_sg.id
-# }
-
 resource "aws_alb_target_group" "app_tg" {
   # checkov:skip=CKV_AWS_378:Target group is using HTTP for this project. No SSL certificate is available
   name = "${var.project_name}-tg"
@@ -44,9 +37,12 @@ resource "aws_alb_target_group" "app_tg" {
   vpc_id = var.vpc_id
 
   health_check {
-    path = "/"
+    path = "/index.html"
     healthy_threshold   = 2
     unhealthy_threshold = 6
+    timeout = 5
+    interval = 30
+    matcher = "200"
   }
 }
 
@@ -117,7 +113,35 @@ resource "aws_launch_template" "app_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     dnf update -y
-    dnf install -y httpd postgres15 nmap-ncat
+    Install Cloudwatch Agent
+    dnf install -y amazon-cloudwatch agent
+    cat <<ETC> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent/amazon-cloudwatch-agent.json
+    {
+      "logs": {
+          "logs_collected": {
+              "files": {
+                "collect_list": [
+                  {
+                    "file_path" : "/var/log/httpd/access_log",
+                    "log_group_name" : "${var.project_name}-access-logs",
+                    "log_stream_name" : "$${instance_id}"
+                  },
+                  {
+                    "file_path": "/tmp/db.test.log",
+                    "log_group_name": "${var.project_name}-db-test-logs",
+                    "log_stream_name" : "$${instance_id}"
+                  },
+                ]
+              }
+            }
+          }
+        }
+      ETC
+
+      # Start the Agent
+      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl" "
+      -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
     # Start server
     systemctl start httpd
     systemctl enable httpd

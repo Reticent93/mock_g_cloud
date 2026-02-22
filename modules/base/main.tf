@@ -30,7 +30,6 @@ data "aws_iam_policy_document" "github_assume_role" {
   }
 }
 
-
 #-------------------GITHUB DEPLOY ROLE--------------------------#
 resource "aws_iam_role" "github_deploy_role" {
   count = var.create_deploy_role ? 1 : 0
@@ -191,7 +190,6 @@ resource "aws_iam_policy" "flow_log_policy" {
   })
 }
 
-
 #-------------------EC2 ROLE--------------------------#
 resource "aws_iam_role" "app_role" {
   name = "${var.project_name}-app-role"
@@ -334,3 +332,7 @@ resource "aws_kms_key" "first_key" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "cloudwatch_agent" {
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  role       = aws_iam_role.app_role.name
+}

@@ -3,6 +3,7 @@ data "aws_availability_zones" "available" {
 }
 
 data "aws_region" "current" {}
+
 data "aws_caller_identity" "current" {}
 
 resource "aws_vpc" "first" {
@@ -15,7 +16,6 @@ resource "aws_vpc" "first" {
 
   }
 }
-
 
 #---------------SECURITY GROUP----------------#
 resource "aws_default_security_group" "default" {
@@ -51,7 +51,6 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   cidr_ipv4 = "0.0.0.0/0"
   security_group_id = aws_security_group.alb_sg.id
 }
-
 
 #---------------SUBNET-----------------------#
 resource "aws_subnet" "primary_subnet" {
@@ -191,7 +190,6 @@ resource "aws_kms_key" "flow_log_key" {
   }
 }
 
-
 resource "aws_security_group" "db_sg" {
   # checkov:skip=CKV2_AWS_5:Attached to RDS in the database module
   description = "Allows ALB SG traffic only"
@@ -211,7 +209,6 @@ resource "aws_db_subnet_group" "db_subnet_group" {
     Name = "${var.project_name}-db-subnet-group"
   }
 }
-
 
 #-----------------RDS INSTANCE-------------------#
 resource "aws_db_parameter_group" "db_pg" {
@@ -234,6 +231,7 @@ resource "aws_db_parameter_group" "db_pg" {
   }
 
 }
+
 resource "aws_db_instance" "first_postgres" {
   # checkov:skip=CKV_AWS_293:Deletion protection set to false for daily destroy
   # checkov:skip=CKV_AWS_354: Using AWS managed key is ok for dev
