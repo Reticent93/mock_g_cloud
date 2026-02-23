@@ -100,22 +100,15 @@ resource "aws_launch_template" "app_lt" {
     http_tokens   = "required"
     http_put_response_hop_limit = 1 # This is the default
   }
-  # user_data = base64encode(<<-EOF
-  #             #!/bin/bash
-  #             yum update -y
-  #             yum install -y httpd
-  #             systemctl start httpd
-  #             systemctl enable httpd
-  #             echo "<h1>Hello from ${var.project_name}</h1>" > /var/www/html/index.html
-  #             EOF
-  # )
 
   user_data = base64encode(<<-EOF
     #!/bin/bash
     dnf update -y
+    dnf install -y httpd jq nc
+    dnf install -y httpd
     # Install Cloudwatch Agent
     dnf install -y amazon-cloudwatch-agent
-    cat <<ETC> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent/amazon-cloudwatch-agent.json
+    cat <<ETC> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
     {
       "logs": {
           "logs_collected": {
@@ -139,7 +132,7 @@ resource "aws_launch_template" "app_lt" {
       ETC
 
       # Start the Agent
-      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
       -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
     # Start server
@@ -158,7 +151,7 @@ resource "aws_launch_template" "app_lt" {
 
     # Attempt to connect to port
     DB_ENDPOINT_HOST=${var.db_endpoint}
-    if nc -zv $DB_ENDPOINT_HOST -w 5 > /tmp/db.test.log 2>&1; then
+    if nc -zv $DB_ENDPOINT_HOST 5432 -w 5 > /tmp/db.test.log 2>&1; then
       RESULT="SUCCESS: Connected to the database at $DB_ENDPOINT"
     else
       RESULT="FAILURE: Could not reach the database at $DB_ENDPOINT. Check SGs!"
@@ -166,7 +159,7 @@ resource "aws_launch_template" "app_lt" {
 
     # Output the result to the website
     echo "<h1>Infrastructure Status<h1> " > /var/www/html/index.html
-    echo "<p>Project: ${var.project_name}<p> " > /var/www/html/index.html
+    echo "<p>Project: ${var.project_name}<p> " >> /var/www/html/index.html
     echo "<p>Database Connectivity: <strong>$RESULT<strong><p>" >> /var/www/html/index.html
 
     EOF
