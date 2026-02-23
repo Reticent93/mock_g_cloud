@@ -104,12 +104,16 @@ resource "aws_launch_template" "app_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     dnf update -y
-    dnf install -y httpd jq nc
-    dnf install -y httpd
     # Install Cloudwatch Agent
-    dnf install -y amazon-cloudwatch-agent
-    cat <<ETC> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-    {
+    dnf install -y httpd jq nmap-cat amazon-cloudwatch-agent
+
+    # Start server
+    systemctl start httpd
+    systemctl enable httpd
+    echo "<h1>Initializing infrastructure! </h1>" > /var/www/html/index.html
+
+    cat <<ETC > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+{
       "logs": {
           "logs_collected": {
               "files": {
@@ -128,16 +132,13 @@ resource "aws_launch_template" "app_lt" {
               }
             }
           }
-        }
-      ETC
+}
+        ETC
 
       # Start the Agent
       /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
       -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
-    # Start server
-    systemctl start httpd
-    systemctl enable httpd
 
     # Get secret
     SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${var.db_secret_arn} --region ${var.aws_region} --query SecretString --output text)
@@ -158,7 +159,7 @@ resource "aws_launch_template" "app_lt" {
     fi
 
     # Output the result to the website
-    echo "<h1>Infrastructure Status<h1> " > /var/www/html/index.html
+    echo "<h1>Infrastructure Status</h1> " > /var/www/html/index.html
     echo "<p>Project: ${var.project_name}<p> " >> /var/www/html/index.html
     echo "<p>Database Connectivity: <strong>$RESULT<strong><p>" >> /var/www/html/index.html
 
