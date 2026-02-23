@@ -113,8 +113,8 @@ resource "aws_launch_template" "app_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     dnf update -y
-    Install Cloudwatch Agent
-    dnf install -y amazon-cloudwatch agent
+    # Install Cloudwatch Agent
+    dnf install -y amazon-cloudwatch-agent
     cat <<ETC> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent/amazon-cloudwatch-agent.json
     {
       "logs": {
@@ -130,7 +130,7 @@ resource "aws_launch_template" "app_lt" {
                     "file_path": "/tmp/db.test.log",
                     "log_group_name": "${var.project_name}-db-test-logs",
                     "log_stream_name" : "$${instance_id}"
-                  },
+                  }
                 ]
               }
             }
@@ -139,7 +139,7 @@ resource "aws_launch_template" "app_lt" {
       ETC
 
       # Start the Agent
-      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl" "
+      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
       -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
     # Start server
