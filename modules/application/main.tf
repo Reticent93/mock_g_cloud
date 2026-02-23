@@ -85,6 +85,7 @@ resource "aws_launch_template" "app_lt" {
   name_prefix = "${var.project_name}-lt"
   image_id = var.ami_id != "" ? var.ami_id : data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
+  update_default_version = true
 
   iam_instance_profile {
     name = var.aws_iam_instance_profile_name
