@@ -37,7 +37,7 @@ resource "aws_alb_target_group" "app_tg" {
   vpc_id = var.vpc_id
 
   health_check {
-    path = "/index.html"
+    path = "/"
     healthy_threshold   = 2
     unhealthy_threshold = 6
     timeout = 5
@@ -81,6 +81,13 @@ resource "aws_vpc_security_group_egress_rule" "apps_to_web_egress" {
   security_group_id = aws_security_group.apps_sg.id
 }
 
+resource "aws_vpc_security_group_egress_rule" "apps_to_any_egress" {
+  #checkov:skip=CKV_AWS_141: Need full access for dnf updates. Will update later
+  ip_protocol       = "-1"
+  cidr_ipv4 = "0.0.0.0/0"
+  security_group_id = aws_security_group.apps_sg.id
+}
+
 resource "aws_launch_template" "app_lt" {
   name_prefix = "${var.project_name}-lt"
   image_id = var.ami_id != "" ? var.ami_id : data.aws_ami.amazon_linux.id
@@ -102,75 +109,20 @@ resource "aws_launch_template" "app_lt" {
     http_put_response_hop_limit = 1 # This is the default
   }
 
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    dnf update -y
-    # Install Cloudwatch Agent
-    dnf install -y httpd jq nmap-cat amazon-cloudwatch-agent
-
-    # Start server
-    systemctl start httpd
-    systemctl enable httpd
-    echo "<h1>Initializing infrastructure! </h1>" > /var/www/html/index.html
-
-    cat <<ETC > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-{
-      "logs": {
-          "logs_collected": {
-              "files": {
-                "collect_list": [
-                  {
-                    "file_path" : "/var/log/httpd/access_log",
-                    "log_group_name" : "${var.project_name}-access-logs",
-                    "log_stream_name" : "$${instance_id}"
-                  },
-                  {
-                    "file_path": "/tmp/db.test.log",
-                    "log_group_name": "${var.project_name}-db-test-logs",
-                    "log_stream_name" : "$${instance_id}"
-                  }
-                ]
-              }
-            }
-          }
-}
-        ETC
-
-      # Start the Agent
-      /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-      -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-
-
-    # Get secret
-    SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${var.db_secret_arn} --region ${var.aws_region} --query SecretString --output text)
-
-    # Connection Test Variables
-    DB_USER=$(echo $SECRET_JSON | jq -r .username)
-    DB_PASS=$(echo $SECRET_JSON | jq -r .password)
-
-    #Write to config file
-    echo "DATABASE_URL=postgres://$DB_USER:$DB_PASS@${var.db_endpoint}/myfirstpostgres" >> /etc/environment
-
-    # Attempt to connect to port
-    DB_ENDPOINT_HOST=${var.db_endpoint}
-    if nc -zv $DB_ENDPOINT_HOST 5432 -w 5 > /tmp/db.test.log 2>&1; then
-      RESULT="SUCCESS: Connected to the database at $DB_ENDPOINT"
-    else
-      RESULT="FAILURE: Could not reach the database at $DB_ENDPOINT. Check SGs!"
-    fi
-
-    # Output the result to the website
-    echo "<h1>Infrastructure Status</h1> " > /var/www/html/index.html
-    echo "<p>Project: ${var.project_name}<p> " >> /var/www/html/index.html
-    echo "<p>Database Connectivity: <strong>$RESULT<strong><p>" >> /var/www/html/index.html
-
-    EOF
-  )
+  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+    project_name = var.project_name
+    aws_region = var.aws_region
+    db_secret_arn = var.db_secret_arn
+    db_endpoint = var.db_endpoint
+  }))
 }
 
 resource "aws_autoscaling_group" "app_asg" {
   vpc_zone_identifier = var.private_subnet_ids
   target_group_arns = [aws_alb_target_group.app_tg.arn]
+  health_check_type = "ELB"
+  health_check_grace_period = 300
+  wait_for_capacity_timeout = "10m"
   desired_capacity = 2
   min_size = 1
   max_size = 3
