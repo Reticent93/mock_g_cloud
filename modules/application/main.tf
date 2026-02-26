@@ -83,6 +83,7 @@ resource "aws_vpc_security_group_egress_rule" "apps_to_web_egress" {
 
 resource "aws_vpc_security_group_egress_rule" "apps_to_any_egress" {
   #checkov:skip=CKV_AWS_141: Need full access for dnf updates. Will update later
+  description = "Allow outbound access to the app"
   ip_protocol       = "-1"
   cidr_ipv4 = "0.0.0.0/0"
   security_group_id = aws_security_group.apps_sg.id
