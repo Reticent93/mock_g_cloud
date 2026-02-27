@@ -95,11 +95,11 @@ Each layer reads outputs from the layers below it via `terraform_remote_state`, 
 Every push to `main` triggers a fully automated, security-first deployment with no static AWS credentials anywhere in the pipeline.
 
 ```
-┌────────────────┐     ┌───────────────────┐     ┌────────────────────┐
-│  🔍  Checkov   │────▶│ 📋 Terraform Plan  │────▶│ ✅ Terraform Apply  │
-│  Static Scan   │     │  Preview Changes   │     │  Deploy via OIDC   │
-│  All .tf files │     │  Against AWS       │     │  1-hour STS token  │
-└────────────────┘     └───────────────────┘     └────────────────────┘
+┌────────────────┐      ┌───────────────────┐       ┌────────────────────┐
+│  🔍  Checkov  │───▶  │ 📋Terraform Plan |───▶   ✅ Terraform Apply  │
+│  Static Scan   │      │  Preview Changes  │       │  Deploy via OIDC   │
+│  All .tf files │      │  Against AWS      │       │  1-hour STS token  │
+└────────────────┘      └───────────────────┘       └────────────────────┘
 ```
 
 - **Checkov** scans all `.tf` files for security misconfigurations. Any violation fails the pipeline. Intentional skips are documented inline with justification (e.g. `CKV_AWS_260` for a public ALB).
